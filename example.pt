@@ -1,0 +1,243 @@
+### FUNCTIONS ###
+
+square = (x) -> x ** 2  # implicit return just like lambda
+square = (x) ->
+  y = x
+  x * y  # implicit return
+def square(x):
+  x * x
+  # returns None
+
+def tex2text_sections(x, options):
+  options.sections = False  # for recursive calls
+  def texorpdfstring(m):
+    return '\\texorpdfstring{' + m.group(1) + m.group(2) + m.group(3) + '}{' + \
+      tex2text(m.group(2), options) + '}'
+  def replace_maths(m):
+    arg = m.group(2)
+    arg = re.sub(r'(\$\$?)([^$]+)(\$\$?)', texorpdfstring, arg, re.DOTALL)
+    arg = re.sub(r'(\\\()(.*?)(\\\))', texorpdfstring, arg, re.DOTALL)
+    arg = re.sub(r'(\\\[)(.*?)(\\\])', texorpdfstring, arg, re.DOTALL)
+    return m.group(1) + arg + '}'
+  return re.sub(
+    r'(\\(?:chapter|(?:sub)*section)\s*\{)((?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*)\}',
+    replace_maths, x)
+
+tex2text_sections = (x, options) ->
+  options.sections = False  # for recursive calls
+  re.sub(
+    r'(\\(?:chapter|(?:sub)*section)\s*\{)((?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*)\}'
+    (m) ->
+      arg = m.group(2)
+      arg = re.sub(
+        r'(\$\$?)([^$]+)(\$\$?)|(\\\()(.*?)(\\\))|(\\\[)(.*?)(\\\])'
+        (match) ->
+          if match.group(1) is not None
+            left, middle, right = match.group(1, 2, 3)
+          elif match.group(4) is not None
+            left, middle, right = match.group(4, 5, 6)
+          elif match.group(7) is not None
+            left, middle, right = match.group(7, 8, 9)
+          '\\texorpdfstring{' + left + middle + right + '}{' +
+            tex2text(middle, options) + '}'
+        arg
+        re.DOTALL)
+      return m.group(1) + arg + '}'
+    x)
+
+### DO ###
+
+adders = []
+for i in range(5):
+  def add_i(x, i=i):
+    return x + i
+  adders.append(add_i)
+for adder in adders:
+  print(adder(10))
+
+adders =
+  for i in range(5)
+    (x, i=i) -> x + i
+for adder in adders
+  print(adder(10))
+
+adders =
+  for i in range(5)
+    do (i) ->
+      (x) -> x + i
+    #((i) ->
+    #  (x) -> x + i
+    #)(i)
+for adder in adders
+  print(adder(10))
+
+#??
+adders =
+  for local i in range(5)
+    (x) -> x + i
+for adder in adders
+  print(adder(10))
+
+### FOR LOOPS ###
+
+data = [1, 2, 3]
+
+#squares = (num ** 2 for num in data)
+squares =  # ideally no \ required
+  for num in data
+    num ** 2
+
+#squares = [num ** 2 for num in data]
+squares = list(
+  for num in data
+    num ** 2
+)
+squares = [*(num ** 2 for num in data)]  # already Python
+squares = [*(
+  for num in data
+    num ** 2
+)]
+squares = [*  # proposed short-hand syntax
+  for num in data
+    num ** 2
+]
+# NOT the following which makes a list with one item, a generator:
+squares = [
+  for num in data
+    num ** 2
+]
+# [<generator>], not [1,2,3]
+
+numbers = [
+  for num in data
+    num ** 2
+  for num in data
+    -num
+]
+# [<generator>, <generator>]
+
+[
+  if x < y
+    x
+  else
+    y
+]
+
+#t = ('hello', 5, 27)
+t = (
+  'hello'
+  5
+  27
+)
+
+f = (
+  x
+  y = 5
+) ->
+  x + y
+
+### CLASSES / SELF ###
+
+# Old attempt at implicit self adding -- probably wrong.
+
+class Foo:
+  def __init__(self):
+    self.x = 5
+  def purple(self):
+    return 'purple'
+  @classmethod
+  def purple():
+    return 'purple'
+  def upper(self, x):
+    return x.upper()
+Foo.get_x = lambda self, y: self.x + y
+
+class Foo
+  __init__ = ->
+    @x = 5
+  purple = (self) -> 'purple'  # correct -- no implicit self without use of @
+  purple = -> 'purple'  # incorrect -- no self first argument
+  @classmethod
+  purple = -> 'purple'  # correct
+  @purple = -> 'purple'  # correct
+  upper = (self, x) -> x.upper()
+  upper = (x) -> x.upper()
+  @classmethod
+  upper = (x) -> x.upper()
+Foo.get_x = (self, y) -> self.x + y  # still works
+Foo.get_x = (self, y) -> @x + y  # gross, no
+Foo.get_x = (@, y) -> @x + y  # explicit naming of self
+Foo.get_x = (y) -> @x + y  # use of @ adds implicit self first argument??
+
+# Instead, we should probably use different arrow notation, like so:
+
+class Foo:
+  def __init__(self):
+    self.x = 5
+    def recurse():
+      if self.x == 0: return 0
+      self.x -= 1
+      return recurse()
+    self.value = recurse()
+
+class Foo
+  __init__ = =>
+    @x = 5
+    recurse = ->
+      if @x == 0: return 0
+      @x -= 1
+      return recurse()
+    @value = recurse()
+
+# (x, y) =>  ===  (self, x, y) ->
+#        @>
+# [x, y] ->
+
+### INFIX OPERATORS ###
+
+infix plus = (x, y) -> x + y
+plus = 5  # should be forbidden
+my_add = plus  # convert to a regular function
+infix my_add = plus
+
+# precedence
+infix(1) plus = (x, y) -> x + y  # explicit numbers?
+infix(+) plus = (x, y) -> x + y  # same as +?
+@infix(1)
+plus = (x, y) -> x + y
+infix 2 times = (x, y) -> x * y
+5 plus 7 times 9
+5 plus (7 times 9)
+
+plus = (x, y) -> x + y
+plus 5 7
+#plus(5,7)
+
+### REGULAR EXPRESSIONS ###
+
+re.compile(r' ... ', re.X)
+/// ... ///x
+
+### ? ###
+# See https://www.python.org/dev/peps/pep-0505/
+
+if x is not None:
+if x?
+#if x
+
+if x is not None and x.y == 5
+if x?.y == 5
+
+x?.y?.z
+
+# should this depend on hasattr(x, 'y')? maybe '??' should?
+
+x?[key] = 5
+if x is not None: x[key] = 5
+
+x ? 5
+if x?
+  x
+else
+  5
+x if x is not None else 5
