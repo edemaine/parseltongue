@@ -8,7 +8,8 @@
   * `match`
   * `try`
   * More?
-* Simplify use of self
+* `do` for easier scoping
+* self via @
 * (?) Implicit function calls without parens
 * (?) Custom infix operators
 * Minor helpful syntax
@@ -22,3 +23,4 @@
 * (?) Every Python program is valid Parseltongue
 * Most punctuation is optional
   * Especially colons
+* Simplify use of self
