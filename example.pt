@@ -123,6 +123,8 @@ numbers = [
     y
 ]
 
+### DATA STRUCTURE CONSTRUCTORS ###
+
 #t = ('hello', 5, 27)
 t = (
   'hello'
@@ -130,11 +132,38 @@ t = (
   27
 )
 
+#l = ['hello', 5, 27]
+l = [
+  'hello'
+  5
+  27
+]
+
+# YAML syntax?
+l =
+  * 'hello'
+  * 5
+  * 27
+
 f = (
   x
   y = 5
 ) ->
   x + y
+
+# Dictionaries
+x = {
+  "foo": 5
+  "bar": 7
+}
+x =
+  "foo": 5
+  "bar": 7
+# Can we distinguish the following use case from typing?
+# Maybe as long as we don't allow top-level key: value...
+x =
+  foo: 5
+  bar: 7
 
 ### CLASSES / SELF ###
 

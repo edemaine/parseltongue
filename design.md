@@ -15,9 +15,10 @@
   * Block comments via `###`
   * `unless`, `until`
   * `then` as alternative for one-line `if ...:`
+  * (?) `..` and `...` alternative to range
 
 ## Goals
 
 * (?) Every Python program is valid Parseltongue
-* Most punctuation are optional
+* Most punctuation is optional
   * Especially colons
