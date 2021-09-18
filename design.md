@@ -21,8 +21,10 @@
   * `@foo` in constructor argument
 * (?) Implicit function calls without parens
 * (?) Custom infix operators
+* (?) Argument initializers that run instead of get memoized
+  (`:=`? or replace current behavior, and break Python compatibility)
 * Minor helpful syntax
-  * Block comments via `###`
+  * Block comments via `###` (incompatible with "Python is Parseltongue")
   * Implicit continuation when ending line with operator
     or starting next line with `.`
   * Comments on continuation lines
