@@ -21,6 +21,7 @@
 ## Goals
 
 * (?) Every Python program is valid Parseltongue
+* Parseltongue compiles to Python
 * Most punctuation is optional
   * Especially colons
 * Simplify use of self
