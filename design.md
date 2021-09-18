@@ -1,4 +1,4 @@
-## Features
+## Planned Features
 
 * Multi-line lambdas via arrow functions
   * (?) Implicit return (but `def` remains as is)
@@ -9,13 +9,17 @@
   * `try`
   * More?
 * `do` for easier scoping
-* self via @
+* self via `@`
+  * `@foo` in constructor argument
 * (?) Implicit function calls without parens
 * (?) Custom infix operators
 * Minor helpful syntax
   * Block comments via `###`
-  * (?) Comments on continuation lines
-  * `unless`, `until`
+  * Implicit continuation when ending line with operator
+    or starting next line with `.`
+  * Comments on continuation lines
+  * `unless`, `until`, `loop`
+  * Backwards one-line `if`, `unless`, `for`, `while`, `until`
   * `then` as alternative for one-line `if ...:`
   * (?) `..` and `...` alternative to range
 
