@@ -14,6 +14,7 @@
 * (?) Custom infix operators
 * Minor helpful syntax
   * Block comments via `###`
+  * (?) Comments on continuation lines
   * `unless`, `until`
   * `then` as alternative for one-line `if ...:`
   * (?) `..` and `...` alternative to range
