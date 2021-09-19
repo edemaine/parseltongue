@@ -130,10 +130,15 @@ class Lexer:
         break
     else:
       if match := Newline.match(self.code, self.pos):
-        self.token_from_match(token.NEWLINE, match)
+        prev = self.prev()
+        if prev and prev.type != token.NEWLINE:
+          self.token_from_match(token.NEWLINE, match)
+        else:
+          self.token_from_match(None, match)
         self.start_line()
       elif match := Comment.match(self.code, self.pos):
-        self.token_from_match(token.COMMENT, match)
+        #self.token_from_match(token.COMMENT, match)
+        self.token_from_match(None, match)
       else:
         self.error('failed to parse token')
 
@@ -146,12 +151,15 @@ class Lexer:
     else:
       end_line_start += 1
       end_line_num = self.line_num + self.code.count('\n', start, end)
-    self.tokens.append(TokenInfo(type, match.group(),
+    token = TokenInfo(type, match.group(),
       (self.line_num, start - self.line_start),
-      (end_line_num, end - self.line_start), self.line))
+      (end_line_num, end - self.line_start), self.line)
+    if type:
+      self.tokens.append(token)
     self.line_start = end_line_start
     self.line_num = end_line_num
     self.pos += end - start
+    return token
 
   def prev(self):
     if self.tokens:
