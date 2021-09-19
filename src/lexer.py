@@ -10,10 +10,12 @@ and CoffeeScript's lexer
 
 import re
 
+import pegen.tokenizer
+
 import token, tokenize
 tok_name = token.tok_name
 tabsize = tokenize.tabsize
-TokenInfo = tokenize.TokenInfo
+Token = TokenInfo = tokenize.TokenInfo
 
 compile = lambda expr: re.compile(expr, re.UNICODE)
 Comment = compile(tokenize.Comment)
@@ -48,6 +50,7 @@ class Lexer:
 
   def __init__(self, code, filename = ''):
     self.filename = filename
+    if hasattr(code, 'read'): code = code.read()
     self.code = code
     self.len = len(code)
     self.pos = 0
@@ -172,6 +175,16 @@ class Lexer:
         line = token.end[0]
       print(f' {tok_name[token.type]}{repr(token.string)}', end = '')
     print()
+
+class Tokenizer(pegen.tokenizer.Tokenizer):
+  def __init__(self, file, filename):
+    def tokengen():
+      lexer = Lexer(file, filename)
+      yield from iter(lexer)
+      while True:
+        yield TokenInfo(token.ENDMARKER, '',
+          (lexer.line_num, 0), (lexer.line_num, len(lexer.line)), lexer.line)
+    super().__init__(tokengen(), path = filename)
 
 def main():
   import sys
