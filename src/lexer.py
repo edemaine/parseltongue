@@ -121,7 +121,7 @@ class Lexer:
     # Continuation
     # Match regular tokens
     #print(f'matching {self.filename}:{self.line_num}.{self.pos - self.line_start} {match.group()}|{repr(self.code[self.pos:self.pos+20])[1:-1]}')
-    for type, rec, *rest in token_rec:
+    for type, rec in token_rec:
       if match := rec.match(self.code, self.pos):
         self.token_from_match(type, match)
         break
