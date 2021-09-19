@@ -72,7 +72,7 @@ class Lexer:
     self.indent, self.pos = self.measure_indent()
     # Ignore indentation if this is a blank or comment line
     if self.pos == self.len or any(
-      rec.match(self.line, self.pos) for rec in [Newline, Comment]): return
+      rec.match(self.code, self.pos) for rec in [Newline, Comment]): return
 
     def indent_token(type):
       self.tokens.append(TokenInfo(type,
@@ -127,10 +127,10 @@ class Lexer:
         break
     else:
       if match := Newline.match(self.code, self.pos):
-        self.token_from_match(type, match)
+        self.token_from_match(token.NEWLINE, match)
         self.start_line()
       elif match := Comment.match(self.code, self.pos):
-        self.token_from_match(type, match)
+        self.token_from_match(token.COMMENT, match)
       else:
         self.error('failed to parse token')
 
@@ -169,8 +169,8 @@ class Lexer:
       if line != token.start[0]:
         if line is not None: print()
         print(f'{token.start[0]:{line_width}}', end = '')
+        line = token.end[0]
       print(f' {tok_name[token.type]}{repr(token.string)}', end = '')
-      line = token.end[0]
     print()
 
 def main():
