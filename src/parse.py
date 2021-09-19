@@ -1,3 +1,4 @@
+#!/usr/bin/env python3.9
 
 import ast
 from typing import List
@@ -831,7 +832,7 @@ class GeneratedParser(Parser):
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . Alias ( a . id , b . id if b else None , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . alias ( a . id , b . id if b else None , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         return None
 
@@ -859,7 +860,7 @@ class GeneratedParser(Parser):
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . Alias ( a . id , b . id if b else None , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . alias ( a . id , b . id if b else None , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         return None
 
@@ -8966,12 +8967,12 @@ class GeneratedParser(Parser):
         return None
 
     KEYWORDS = ('return', 'import', 'from', 'raise', 'pass', 'del', 'yield', 'assert', 'break', 'continue', 'global', 'nonlocal', 'def', 'if', 'class', 'with', 'for', 'try', 'while', 'as', 'elif', 'else', 'in', 'except', 'finally', 'None', 'True', 'False', 'or', 'and', 'not', 'is', 'lambda')
-    SOFT_KEYWORDS = ('match', 'case', '_')
+    SOFT_KEYWORDS = ('_', 'match', 'case')
 
 def main():
   for filename in sys.argv[1:]:
     file = open(filename, 'r')
-    parser = GeneratedParser(lexer.Tokenizer(file, filename))
+    parser = GeneratedParser(lexer.Tokenizer(file, filename), verbose=True)
     parsed = parser.file()
     print(ast.dump(parsed))
 

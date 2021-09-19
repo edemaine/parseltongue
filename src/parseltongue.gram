@@ -1,7 +1,8 @@
 # PEG grammar for Parseltongue,
 # based on the PEG grammar for Python in pegen/python.gram
 
-@header '''
+@header '''#!/usr/bin/env python3.9
+
 import ast
 from typing import List
 from dataclasses import dataclass
@@ -76,7 +77,7 @@ def map_names_to_ids(names):
 def main():
   for filename in sys.argv[1:]:
     file = open(filename, 'r')
-    parser = GeneratedParser(lexer.Tokenizer(file, filename))
+    parser = GeneratedParser(lexer.Tokenizer(file, filename), verbose=True)
     parsed = parser.file()
     print(ast.dump(parsed))
 
@@ -269,11 +270,11 @@ import_from_targets[List[ast.alias]]:
 import_from_as_names[List[ast.alias]]:
     | a[List[ast.alias]]=','.import_from_as_name+ { a }
 import_from_as_name[ast.alias]:
-    | a=NAME b=['as' z=NAME { z }] { ast.Alias(a.id, b.id if b else None, LOCATIONS) }
+    | a=NAME b=['as' z=NAME { z }] { ast.alias(a.id, b.id if b else None, LOCATIONS) }
 dotted_as_names[List[ast.alias]]:
     | a[List[ast.alias]]=','.dotted_as_name+ { a }
 dotted_as_name[ast.alias]:
-    | a=dotted_name b=['as' z=NAME { z }] { ast.Alias(a.id, b.id if b else None, LOCATIONS) }
+    | a=dotted_name b=['as' z=NAME { z }] { ast.alias(a.id, b.id if b else None, LOCATIONS) }
 dotted_name[ast.expr]:
     | a=dotted_name '.' b=NAME { ast.Name(f'{a.id}.{b.id}') }
     | NAME
