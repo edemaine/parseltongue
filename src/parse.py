@@ -68,6 +68,41 @@ def empty_arguments():
 
 def map_names_to_ids(names):
   return [name.id for name in names]
+
+def class_def_decorators(decorators: List[ast.expr], class_def: ast.stmt) -> ast.stmt:
+  return ast.ClassDef(class_def.name, class_def.bases, class_def.keywords,
+    class_def.body, decorators, **copy_locations(class_def))
+
+def add_type_comment_to_arg(arg, tc):
+  if not tc: return arg
+  tc = TypeComment(tc)
+  return ast.arg(arg.arg, arg.annotation, tc, **copy_locations(arg))
+
+def make_arguments(slash_without_default: List[ast.arg],
+    slash_with_default: SlashWithDefault,
+    plain_names: List[ast.arg],
+    names_with_default: List,
+    star_etc: StarEtc):
+  # xxx
+  return ast.arguments()
+
+def check_legacy_stmt(x):
+  return x.id in ['print', 'exec']
+
+def copy_locations(x):
+  return dict(
+    lineno = x.lineno,
+    col_offset = x.col_offset,
+    end_lineno = x.end_lineno,
+    end_col_offset = x.end_col_offset,
+  )
+
+# Wrap tokens in ast structures
+class Parser(Parser):
+  def name(self) -> Optional[ast.Name]:
+    name = super().name()
+    if name: name = ast.Name(name)
+    return name
 # Keywords and soft keywords are listed at the end of the parser definition.
 class GeneratedParser(Parser):
 
@@ -931,7 +966,7 @@ class GeneratedParser(Parser):
             and
             (b := self.class_def_raw())
         ):
-            return _PyPegen_class_def_decorators ( p , a , b )
+            return class_def_decorators ( a , b )
         self._reset(mark)
         if (
             (class_def_raw := self.class_def_raw())
@@ -964,7 +999,7 @@ class GeneratedParser(Parser):
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . Class ( a . id , b . args if b else None , b . keywords if b else None , c , None , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . ClassDef ( a . id , b . args if b else None , b . keywords if b else None , c , None , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         return None
 
@@ -1076,7 +1111,7 @@ class GeneratedParser(Parser):
             and
             (d := self.star_etc(),)
         ):
-            return _PyPegen_make_arguments ( p , a , None , b , c , d )
+            return make_arguments ( a , None , b , c , d )
         self._reset(mark)
         if (
             (a := self.slash_with_default())
@@ -1085,7 +1120,7 @@ class GeneratedParser(Parser):
             and
             (c := self.star_etc(),)
         ):
-            return _PyPegen_make_arguments ( p , None , a , None , b , c )
+            return make_arguments ( None , a , None , b , c )
         self._reset(mark)
         if (
             (a := self._loop1_39())
@@ -1094,19 +1129,19 @@ class GeneratedParser(Parser):
             and
             (c := self.star_etc(),)
         ):
-            return _PyPegen_make_arguments ( p , None , None , a , b , c )
+            return make_arguments ( None , None , a , b , c )
         self._reset(mark)
         if (
             (a := self._loop1_41())
             and
             (b := self.star_etc(),)
         ):
-            return _PyPegen_make_arguments ( p , None , None , None , a , b )
+            return make_arguments ( None , None , None , a , b )
         self._reset(mark)
         if (
             (a := self.star_etc())
         ):
-            return _PyPegen_make_arguments ( p , None , None , None , None , a )
+            return make_arguments ( None , None , None , None , a )
         self._reset(mark)
         return None
 
@@ -1224,7 +1259,7 @@ class GeneratedParser(Parser):
             and
             (tc := self.type_comment(),)
         ):
-            return _PyPegen_add_type_comment_to_arg ( p , a , tc )
+            return add_type_comment_to_arg ( a , tc )
         self._reset(mark)
         if (
             (a := self.param())
@@ -1233,7 +1268,7 @@ class GeneratedParser(Parser):
             and
             self.positive_lookahead(self.expect, ')')
         ):
-            return _PyPegen_add_type_comment_to_arg ( p , a , tc )
+            return add_type_comment_to_arg ( a , tc )
         self._reset(mark)
         return None
 
@@ -1306,7 +1341,7 @@ class GeneratedParser(Parser):
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return _PyAST_arg ( a . id , b , None , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . arg ( a . id , b , None , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         return None
 
@@ -3655,7 +3690,7 @@ class GeneratedParser(Parser):
             and
             (d := self.lambda_star_etc(),)
         ):
-            return _PyPegen_make_arguments ( p , a , None , b , c , d )
+            return make_arguments ( a , None , b , c , d )
         self._reset(mark)
         if (
             (a := self.lambda_slash_with_default())
@@ -3664,7 +3699,7 @@ class GeneratedParser(Parser):
             and
             (c := self.lambda_star_etc(),)
         ):
-            return _PyPegen_make_arguments ( p , None , a , None , b , c )
+            return make_arguments ( None , a , None , b , c )
         self._reset(mark)
         if (
             (a := self._loop1_94())
@@ -3673,19 +3708,19 @@ class GeneratedParser(Parser):
             and
             (c := self.lambda_star_etc(),)
         ):
-            return _PyPegen_make_arguments ( p , None , None , a , b , c )
+            return make_arguments ( None , None , a , b , c )
         self._reset(mark)
         if (
             (a := self._loop1_96())
             and
             (b := self.lambda_star_etc(),)
         ):
-            return _PyPegen_make_arguments ( p , None , None , None , a , b )
+            return make_arguments ( None , None , None , a , b )
         self._reset(mark)
         if (
             (a := self.lambda_star_etc())
         ):
-            return _PyPegen_make_arguments ( p , None , None , None , None , a )
+            return make_arguments ( None , None , None , None , a )
         self._reset(mark)
         return None
 
@@ -3871,7 +3906,7 @@ class GeneratedParser(Parser):
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return _PyAST_arg ( a . id , None , None , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . arg ( a . id , None , None , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         return None
 
@@ -3882,7 +3917,7 @@ class GeneratedParser(Parser):
         if (
             (a := self._loop1_105())
         ):
-            return _PyPegen_concatenate_strings ( p , a )
+            return a
         self._reset(mark)
         return None
 
@@ -4980,7 +5015,7 @@ class GeneratedParser(Parser):
             and
             (b := self.star_expressions())
         ):
-            return RAISE_SYNTAX_ERROR_KNOWN_RANGE ( a , b , "Missing parentheses in call to '%U'. Did you mean %U(...)?" , a . id , a . id ) if _PyPegen_check_legacy_stmt ( p , a ) else None
+            return RAISE_SYNTAX_ERROR_KNOWN_RANGE ( a , b , "Missing parentheses in call to '%U'. Did you mean %U(...)?" , a . id , a . id ) if check_legacy_stmt ( a ) else None
         self._reset(mark)
         return None
 

@@ -71,6 +71,42 @@ def empty_arguments():
 
 def map_names_to_ids(names):
   return [name.id for name in names]
+
+def class_def_decorators(decorators: List[ast.expr], class_def: ast.stmt) -> ast.stmt:
+  return ast.ClassDef(class_def.name, class_def.bases, class_def.keywords,
+    class_def.body, decorators, **copy_locations(class_def))
+
+def add_type_comment_to_arg(arg, tc):
+  if not tc: return arg
+  tc = TypeComment(tc)
+  return ast.arg(arg.arg, arg.annotation, tc, **copy_locations(arg))
+
+def make_arguments(slash_without_default: List[ast.arg],
+    slash_with_default: SlashWithDefault,
+    plain_names: List[ast.arg],
+    names_with_default: List,
+    star_etc: StarEtc):
+  # xxx
+  return ast.arguments()
+
+def check_legacy_stmt(x):
+  return x.id in ['print', 'exec']
+
+def copy_locations(x):
+  return dict(
+    lineno = x.lineno,
+    col_offset = x.col_offset,
+    end_lineno = x.end_lineno,
+    end_col_offset = x.end_col_offset,
+  )
+
+# Wrap tokens in ast structures
+class Parser(Parser):
+  def name(self) -> Optional[ast.Name]:
+    name = super().name()
+    if name: name = ast.Name(name)
+    return name
+
 '''
 
 @trailer '''
@@ -296,13 +332,13 @@ decorators[List[ast.expr]]: a[List[ast.expr]]=('@' f=named_expression NEWLINE { 
 # -----------------
 
 class_def[ast.stmt]:
-    | a=decorators b=class_def_raw { _PyPegen_class_def_decorators(p, a, b) }
+    | a=decorators b=class_def_raw { class_def_decorators(a, b) }
     | class_def_raw
 
 class_def_raw[ast.stmt]:
     | invalid_class_def_raw
     | 'class' a=NAME b=['(' z=[arguments] ')' { z }] &&':' c=block {
-        ast.Class(a.id,
+        ast.ClassDef(a.id,
           b.args if b else None,
           b.keywords if b else None,
           c, None, LOCATIONS) }
@@ -339,13 +375,14 @@ params[ast.arguments]:
 
 parameters[ast.arguments]:
     | a=slash_no_default b[List[ast.arg]]=param_no_default* c=param_with_default* d=[star_etc] {
-        _PyPegen_make_arguments(p, a, None, b, c, d) }
+        make_arguments(a, None, b, c, d) }
     | a=slash_with_default b=param_with_default* c=[star_etc] {
-        _PyPegen_make_arguments(p, None, a, None, b, c) }
+        make_arguments(None, a, None, b, c) }
     | a[List[ast.arg]]=param_no_default+ b=param_with_default* c=[star_etc] {
-        _PyPegen_make_arguments(p, None, None, a, b, c) }
-    | a=param_with_default+ b=[star_etc] { _PyPegen_make_arguments(p, None, None, None, a, b)}
-    | a=star_etc { _PyPegen_make_arguments(p, None, None, None, None, a) }
+        make_arguments(None, None, a, b, c) }
+    | a=param_with_default+ b=[star_etc] {
+        make_arguments(None, None, None, a, b) }
+    | a=star_etc { make_arguments(None, None, None, None, a) }
 
 # Some duplication here because we can't write (',' | &')'),
 # which is because we don't support empty alternatives (yet).
@@ -381,15 +418,15 @@ kwds[ast.arg]: '**' a=param_no_default { a }
 #
 
 param_no_default[ast.arg]:
-    | a=param ',' tc=TYPE_COMMENT? { _PyPegen_add_type_comment_to_arg(p, a, tc) }
-    | a=param tc=TYPE_COMMENT? &')' { _PyPegen_add_type_comment_to_arg(p, a, tc) }
+    | a=param ',' tc=TYPE_COMMENT? { add_type_comment_to_arg(a, tc) }
+    | a=param tc=TYPE_COMMENT? &')' { add_type_comment_to_arg(a, tc) }
 param_with_default[NameDefaultPair]:
     | a=param c=default ',' tc=TYPE_COMMENT? { NameDefaultPair(a, c, tc) }
     | a=param c=default tc=TYPE_COMMENT? &')' { NameDefaultPair(a, c, tc) }
 param_maybe_default[NameDefaultPair]:
     | a=param c=default? ',' tc=TYPE_COMMENT? { NameDefaultPair(a, c, tc) }
     | a=param c=default? tc=TYPE_COMMENT? &')' { NameDefaultPair(a, c, tc) }
-param[ast.arg]: a=NAME b=annotation? { _PyAST_arg(a.id, b, None, LOCATIONS) }
+param[ast.arg]: a=NAME b=annotation? { ast.arg(a.id, b, None, LOCATIONS) }
 annotation[ast.expr]: ':' a=expression { a }
 default[ast.expr]: '=' a=expression { a }
 
@@ -857,13 +894,13 @@ lambda_params[ast.arguments]:
 #
 lambda_parameters[ast.arguments]:
     | a=lambda_slash_no_default b[List[ast.arg]]=lambda_param_no_default* c=lambda_param_with_default* d=[lambda_star_etc] {
-        _PyPegen_make_arguments(p, a, None, b, c, d) }
+        make_arguments(a, None, b, c, d) }
     | a=lambda_slash_with_default b=lambda_param_with_default* c=[lambda_star_etc] {
-        _PyPegen_make_arguments(p, None, a, None, b, c) }
+        make_arguments(None, a, None, b, c) }
     | a[List[ast.arg]]=lambda_param_no_default+ b=lambda_param_with_default* c=[lambda_star_etc] {
-        _PyPegen_make_arguments(p, None, None, a, b, c) }
-    | a=lambda_param_with_default+ b=[lambda_star_etc] { _PyPegen_make_arguments(p, None, None, None, a, b)}
-    | a=lambda_star_etc { _PyPegen_make_arguments(p, None, None, None, None, a) }
+        make_arguments(None, None, a, b, c) }
+    | a=lambda_param_with_default+ b=[lambda_star_etc] { make_arguments(None, None, None, a, b)}
+    | a=lambda_star_etc { make_arguments(None, None, None, None, a) }
 
 lambda_slash_no_default[List[ast.arg]]:
     | a[List[ast.arg]]=lambda_param_no_default+ '/' ',' { a }
@@ -892,12 +929,14 @@ lambda_param_with_default[NameDefaultPair]:
 lambda_param_maybe_default[NameDefaultPair]:
     | a=lambda_param c=default? ',' { NameDefaultPair(a, c, None) }
     | a=lambda_param c=default? &':' { NameDefaultPair(a, c, None) }
-lambda_param[ast.arg]: a=NAME { _PyAST_arg(a.id, None, None, LOCATIONS) }
+lambda_param[ast.arg]: a=NAME { ast.arg(a.id, None, None, LOCATIONS) }
 
 # LITERALS
 # ========
 
-strings[ast.expr] (memo): a=STRING+ { _PyPegen_concatenate_strings(p, a) }
+strings[ast.expr] (memo): a=STRING+ { a
+    # xxx _PyPegen_concatenate_strings(p, a)
+    }
 
 list[ast.expr]:
     | '[' a=[star_named_expressions] ']' { ast.List(a, ast.Load, LOCATIONS) }
@@ -1117,7 +1156,7 @@ invalid_legacy_expression:
     | a=NAME !'(' b=star_expressions {
         RAISE_SYNTAX_ERROR_KNOWN_RANGE(a, b,
             "Missing parentheses in call to '%U'. Did you mean %U(...)?",
-            a.id, a.id) if _PyPegen_check_legacy_stmt(p, a) else None }
+            a.id, a.id) if check_legacy_stmt(a) else None }
 
 invalid_expression:
    | invalid_legacy_expression
