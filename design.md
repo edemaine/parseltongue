@@ -32,3 +32,4 @@
   * Backwards one-line `if`, `unless`, `for`, `while`, `until`
   * `then` as alternative for one-line `if ...:`
   * `..` (and `...`?) alternative to range and slices
+  * `and=`, `or=`
