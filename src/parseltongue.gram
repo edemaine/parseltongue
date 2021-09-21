@@ -48,7 +48,9 @@ class StarEtc:
   vararg: ast.arg
   kwonlyargs: List[NameDefaultPair]
   kwarg: ast.arg
-TypeComment = str
+def TypeComment(x):
+  if x: x = str(x)
+  return x
 
 def seq_count_dots(seq) -> int:
   dots = 0
@@ -102,9 +104,13 @@ def copy_locations(x):
 
 # Wrap tokens in ast structures
 class Parser(Parser):
+  def number(self): # -> Optional[ast.Constant]:
+    number = super().number()
+    if number: number = ast.Constant(lexer.parse_number(number))
+    return number
   def name(self) -> Optional[ast.Name]:
     name = super().name()
-    if name: name = ast.Name(name)
+    if name: name = ast.Name(name.string)
     return name
 
 '''
@@ -178,7 +184,8 @@ if __name__ == '__main__': main()
 # STARTING RULES
 # ==============
 
-file[ast.mod]: a=[statements] ENDMARKER { ast.Module(a) }
+file[ast.mod]: a=[statements] ENDMARKER { ast.Module(a, []) # xxx type_ignores
+  }
 interactive[ast.mod]: a=statement_newline { ast.Interactive(a, p.arena) }
 eval[ast.mod]: a=expressions NEWLINE* ENDMARKER { ast.Expression(a, p.arena) }
 func_type[ast.mod]: '(' a=[type_expressions] ')' '->' b=expression NEWLINE* ENDMARKER { ast.FunctionType(a, b, p.arena) }
@@ -844,11 +851,11 @@ await_primary[ast.expr] (memo):
 
 primary[ast.expr]:
     | a=primary '.' b=NAME { ast.Attribute(a, b.id, ast.Load, LOCATIONS) }
-    | a=primary b=genexp { ast.Call(a, [b], None, LOCATIONS) }
+    | a=primary b=genexp { ast.Call(a, [b], [], LOCATIONS) }
     | a=primary '(' b=[arguments] ')' {
         ast.Call(a,
-                 b.args if b else None,
-                 b.keywords if b else None,
+                 b.args if b else [],
+                 b.keywords if b else [],
                  LOCATIONS) }
     | a=primary '[' b=slices ']' { ast.Subscript(a, b, ast.Load, LOCATIONS) }
     | atom
@@ -1004,8 +1011,9 @@ arguments[ast.expr] (memo):
 
 args[ast.expr]:
     | a[List[ast.expr]]=','.(starred_expression | ( assigment_expression | expression !':=') !'=')+ b=[',' k=kwargs {k}] {
-        ast.Call(None, a, b, LOCATIONS) #xxx
-        #_PyPegen_collect_call_seqs(p, a, b, LOCATIONS)
+        #xxx _PyPegen_collect_call_seqs(p, a, b, LOCATIONS)
+        #... if b else
+        ast.Call(None, a, [], LOCATIONS)
       }
     | a=kwargs { ast.Call(_PyPegen_dummy_name(p),
                           CHECK_NULL_ALLOWED(List[ast.expr], _PyPegen_seq_extract_starred_exprs(p, a)),
@@ -1079,11 +1087,11 @@ t_primary[ast.expr]:
     | a=t_primary '.' b=NAME &t_lookahead { ast.Attribute(a, b.id, ast.Load, LOCATIONS) }
     | a=t_primary '[' b=slices ']' &t_lookahead { ast.Subscript(a, b, ast.Load, LOCATIONS) }
     | a=t_primary b=genexp &t_lookahead {
-        ast.Call(a, [b], None, LOCATIONS) }
+        ast.Call(a, [b], [], LOCATIONS) }
     | a=t_primary '(' b=[arguments] ')' &t_lookahead {
         ast.Call(a,
-                 b.args if b else None,
-                 b.keywords if b else None,
+                 b.args if b else [],
+                 b.keywords if b else [],
                  LOCATIONS) }
     | a=atom &t_lookahead { a }
 

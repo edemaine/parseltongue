@@ -45,7 +45,9 @@ class StarEtc:
   vararg: ast.arg
   kwonlyargs: List[NameDefaultPair]
   kwarg: ast.arg
-TypeComment = str
+def TypeComment(x):
+  if x: x = str(x)
+  return x
 
 def seq_count_dots(seq) -> int:
   dots = 0
@@ -99,9 +101,13 @@ def copy_locations(x):
 
 # Wrap tokens in ast structures
 class Parser(Parser):
+  def number(self): # -> Optional[ast.Constant]:
+    number = super().number()
+    if number: number = ast.Constant(lexer.parse_number(number))
+    return number
   def name(self) -> Optional[ast.Name]:
     name = super().name()
-    if name: name = ast.Name(name)
+    if name: name = ast.Name(name.string)
     return name
 # Keywords and soft keywords are listed at the end of the parser definition.
 class GeneratedParser(Parser):
@@ -115,7 +121,7 @@ class GeneratedParser(Parser):
             and
             (_endmarker := self.expect('ENDMARKER'))
         ):
-            return ast . Module ( a )
+            return ast . Module ( a , [] )
         self._reset(mark)
         return None
 
@@ -3461,7 +3467,7 @@ class GeneratedParser(Parser):
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . Call ( a , [b] , None , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . Call ( a , [b] , [] , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         if (
             (a := self.primary())
@@ -3474,7 +3480,7 @@ class GeneratedParser(Parser):
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . Call ( a , b . args if b else None , b . keywords if b else None , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . Call ( a , b . args if b else [] , b . keywords if b else [] , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         if (
             (a := self.primary())
@@ -4247,7 +4253,7 @@ class GeneratedParser(Parser):
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . Call ( None , a , b , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . Call ( None , a , [] , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         if (
             (a := self.kwargs())
@@ -4634,7 +4640,7 @@ class GeneratedParser(Parser):
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . Call ( a , [b] , None , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . Call ( a , [b] , [] , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         if (
             (a := self.t_primary())
@@ -4649,7 +4655,7 @@ class GeneratedParser(Parser):
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . Call ( a , b . args if b else None , b . keywords if b else None , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . Call ( a , b . args if b else [] , b . keywords if b else [] , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         if (
             (a := self.atom())
@@ -9002,7 +9008,7 @@ class GeneratedParser(Parser):
         return None
 
     KEYWORDS = ('return', 'import', 'from', 'raise', 'pass', 'del', 'yield', 'assert', 'break', 'continue', 'global', 'nonlocal', 'def', 'if', 'class', 'with', 'for', 'try', 'while', 'as', 'elif', 'else', 'in', 'except', 'finally', 'None', 'True', 'False', 'or', 'and', 'not', 'is', 'lambda')
-    SOFT_KEYWORDS = ('_', 'match', 'case')
+    SOFT_KEYWORDS = ('case', 'match', '_')
 
 def main():
   for filename in sys.argv[1:]:
