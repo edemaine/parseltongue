@@ -765,8 +765,8 @@ comparison[ast.expr]:
     | a=bitwise_or b=compare_op_bitwise_or_pair+ {
         ast.Compare(
             a,
-            CHECK(List[int], _PyPegen_get_cmpops(p, b)),
-            CHECK(List[ast.expr], _PyPegen_get_exprs(p, b)),
+            [pair.cmpop for pair in b],
+            [pair.expr for pair in b],
             LOCATIONS) }
     | bitwise_or
 
@@ -782,17 +782,17 @@ compare_op_bitwise_or_pair[CmpopExprPair]:
     | isnot_bitwise_or
     | is_bitwise_or
 
-eq_bitwise_or[CmpopExprPair]: '==' a=bitwise_or { _PyPegen_cmpop_expr_pair(p, Eq, a) }
+eq_bitwise_or[CmpopExprPair]: '==' a=bitwise_or { CmpopExprPair(ast.Eq(), a) }
 noteq_bitwise_or[CmpopExprPair]:
-    | (tok='!=' { None if _PyPegen_check_barry_as_flufl(p, tok) else tok}) a=bitwise_or {_PyPegen_cmpop_expr_pair(p, NotEq, a) }
-lte_bitwise_or[CmpopExprPair]: '<=' a=bitwise_or { _PyPegen_cmpop_expr_pair(p, LtE, a) }
-lt_bitwise_or[CmpopExprPair]: '<' a=bitwise_or { _PyPegen_cmpop_expr_pair(p, Lt, a) }
-gte_bitwise_or[CmpopExprPair]: '>=' a=bitwise_or { _PyPegen_cmpop_expr_pair(p, GtE, a) }
-gt_bitwise_or[CmpopExprPair]: '>' a=bitwise_or { _PyPegen_cmpop_expr_pair(p, Gt, a) }
-notin_bitwise_or[CmpopExprPair]: 'not' 'in' a=bitwise_or { _PyPegen_cmpop_expr_pair(p, NotIn, a) }
-in_bitwise_or[CmpopExprPair]: 'in' a=bitwise_or { _PyPegen_cmpop_expr_pair(p, In, a) }
-isnot_bitwise_or[CmpopExprPair]: 'is' 'not' a=bitwise_or { _PyPegen_cmpop_expr_pair(p, IsNot, a) }
-is_bitwise_or[CmpopExprPair]: 'is' a=bitwise_or { _PyPegen_cmpop_expr_pair(p, Is, a) }
+    | (tok='!=' { None if _PyPegen_check_barry_as_flufl(p, tok) else tok}) a=bitwise_or { CmpOpExprPair(ast.NotEq(), a) }
+lte_bitwise_or[CmpopExprPair]: '<=' a=bitwise_or { CmpOpExprPair(ast.LtE(), a) }
+lt_bitwise_or[CmpopExprPair]: '<' a=bitwise_or { CmpOpExprPair(ast.Lt(), a) }
+gte_bitwise_or[CmpopExprPair]: '>=' a=bitwise_or { CmpOpExprPair(ast.GtE(), a) }
+gt_bitwise_or[CmpopExprPair]: '>' a=bitwise_or { CmpOpExprPair(ast.Gt(), a) }
+notin_bitwise_or[CmpopExprPair]: 'not' 'in' a=bitwise_or { CmpOpExprPair(ast.NotIn(), a) }
+in_bitwise_or[CmpopExprPair]: 'in' a=bitwise_or { CmpOpExprPair(ast.In(), a) }
+isnot_bitwise_or[CmpopExprPair]: 'is' 'not' a=bitwise_or { CmpOpExprPair(ast.IsNot(), a) }
+is_bitwise_or[CmpopExprPair]: 'is' a=bitwise_or { CmpOpExprPair(ast.Is(), a) }
 
 # Logical operators
 # -----------------
@@ -818,22 +818,22 @@ shift_expr[ast.expr]:
 # --------------------
 
 sum[ast.expr]:
-    | a=sum '+' b=term { ast.BinOp(a, Add, b, LOCATIONS) }
-    | a=sum '-' b=term { ast.BinOp(a, Sub, b, LOCATIONS) }
+    | a=sum '+' b=term { ast.BinOp(a, ast.Add(), b, LOCATIONS) }
+    | a=sum '-' b=term { ast.BinOp(a, ast.Sub(), b, LOCATIONS) }
     | term
 
 term[ast.expr]:
-    | a=term '*' b=factor { ast.BinOp(a, Mult, b, LOCATIONS) }
-    | a=term '/' b=factor { ast.BinOp(a, Div, b, LOCATIONS) }
-    | a=term '//' b=factor { ast.BinOp(a, FloorDiv, b, LOCATIONS) }
-    | a=term '%' b=factor { ast.BinOp(a, Mod, b, LOCATIONS) }
-    | a=term '@' b=factor { CHECK_VERSION(ast.expr, 5, "The '@' operator is", ast.BinOp(a, MatMult, b, LOCATIONS)) }
+    | a=term '*' b=factor { ast.BinOp(a, ast.Mult(), b, LOCATIONS) }
+    | a=term '/' b=factor { ast.BinOp(a, ast.Div(), b, LOCATIONS) }
+    | a=term '//' b=factor { ast.BinOp(a, ast.FloorDiv(), b, LOCATIONS) }
+    | a=term '%' b=factor { ast.BinOp(a, ast.Mod(), b, LOCATIONS) }
+    | a=term '@' b=factor { CHECK_VERSION(ast.expr, 5, "The '@' operator is", ast.BinOp(a, ast.MatMult(), b, LOCATIONS)) }
     | factor
 
 factor[ast.expr] (memo):
-    | '+' a=factor { ast.UnaryOp(UAdd, a, LOCATIONS) }
-    | '-' a=factor { ast.UnaryOp(USub, a, LOCATIONS) }
-    | '~' a=factor { ast.UnaryOp(Invert, a, LOCATIONS) }
+    | '+' a=factor { ast.UnaryOp(ast.UAdd(), a, LOCATIONS) }
+    | '-' a=factor { ast.UnaryOp(ast.USub(), a, LOCATIONS) }
+    | '~' a=factor { ast.UnaryOp(ast.Invert(), a, LOCATIONS) }
     | power
 
 power[ast.expr]:

@@ -2948,7 +2948,7 @@ class GeneratedParser(Parser):
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . Compare ( a , CHECK ( List [int] , _PyPegen_get_cmpops ( p , b ) ) , CHECK ( List [ast . expr] , _PyPegen_get_exprs ( p , b ) ) , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . Compare ( a , [pair . cmpop for pair in b] , [pair . expr for pair in b] , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         if (
             (bitwise_or := self.bitwise_or())
@@ -3022,7 +3022,7 @@ class GeneratedParser(Parser):
             and
             (a := self.bitwise_or())
         ):
-            return _PyPegen_cmpop_expr_pair ( p , Eq , a )
+            return CmpopExprPair ( ast . Eq ( ) , a )
         self._reset(mark)
         return None
 
@@ -3035,7 +3035,7 @@ class GeneratedParser(Parser):
             and
             (a := self.bitwise_or())
         ):
-            return _PyPegen_cmpop_expr_pair ( p , NotEq , a )
+            return CmpOpExprPair ( ast . NotEq ( ) , a )
         self._reset(mark)
         return None
 
@@ -3048,7 +3048,7 @@ class GeneratedParser(Parser):
             and
             (a := self.bitwise_or())
         ):
-            return _PyPegen_cmpop_expr_pair ( p , LtE , a )
+            return CmpOpExprPair ( ast . LtE ( ) , a )
         self._reset(mark)
         return None
 
@@ -3061,7 +3061,7 @@ class GeneratedParser(Parser):
             and
             (a := self.bitwise_or())
         ):
-            return _PyPegen_cmpop_expr_pair ( p , Lt , a )
+            return CmpOpExprPair ( ast . Lt ( ) , a )
         self._reset(mark)
         return None
 
@@ -3074,7 +3074,7 @@ class GeneratedParser(Parser):
             and
             (a := self.bitwise_or())
         ):
-            return _PyPegen_cmpop_expr_pair ( p , GtE , a )
+            return CmpOpExprPair ( ast . GtE ( ) , a )
         self._reset(mark)
         return None
 
@@ -3087,7 +3087,7 @@ class GeneratedParser(Parser):
             and
             (a := self.bitwise_or())
         ):
-            return _PyPegen_cmpop_expr_pair ( p , Gt , a )
+            return CmpOpExprPair ( ast . Gt ( ) , a )
         self._reset(mark)
         return None
 
@@ -3102,7 +3102,7 @@ class GeneratedParser(Parser):
             and
             (a := self.bitwise_or())
         ):
-            return _PyPegen_cmpop_expr_pair ( p , NotIn , a )
+            return CmpOpExprPair ( ast . NotIn ( ) , a )
         self._reset(mark)
         return None
 
@@ -3115,7 +3115,7 @@ class GeneratedParser(Parser):
             and
             (a := self.bitwise_or())
         ):
-            return _PyPegen_cmpop_expr_pair ( p , In , a )
+            return CmpOpExprPair ( ast . In ( ) , a )
         self._reset(mark)
         return None
 
@@ -3130,7 +3130,7 @@ class GeneratedParser(Parser):
             and
             (a := self.bitwise_or())
         ):
-            return _PyPegen_cmpop_expr_pair ( p , IsNot , a )
+            return CmpOpExprPair ( ast . IsNot ( ) , a )
         self._reset(mark)
         return None
 
@@ -3143,7 +3143,7 @@ class GeneratedParser(Parser):
             and
             (a := self.bitwise_or())
         ):
-            return _PyPegen_cmpop_expr_pair ( p , Is , a )
+            return CmpOpExprPair ( ast . Is ( ) , a )
         self._reset(mark)
         return None
 
@@ -3269,7 +3269,7 @@ class GeneratedParser(Parser):
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . BinOp ( a , Add , b , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . BinOp ( a , ast . Add ( ) , b , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         if (
             (a := self.sum())
@@ -3280,7 +3280,7 @@ class GeneratedParser(Parser):
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . BinOp ( a , Sub , b , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . BinOp ( a , ast . Sub ( ) , b , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         if (
             (term := self.term())
@@ -3304,7 +3304,7 @@ class GeneratedParser(Parser):
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . BinOp ( a , Mult , b , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . BinOp ( a , ast . Mult ( ) , b , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         if (
             (a := self.term())
@@ -3315,7 +3315,7 @@ class GeneratedParser(Parser):
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . BinOp ( a , Div , b , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . BinOp ( a , ast . Div ( ) , b , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         if (
             (a := self.term())
@@ -3326,7 +3326,7 @@ class GeneratedParser(Parser):
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . BinOp ( a , FloorDiv , b , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . BinOp ( a , ast . FloorDiv ( ) , b , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         if (
             (a := self.term())
@@ -3337,7 +3337,7 @@ class GeneratedParser(Parser):
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . BinOp ( a , Mod , b , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . BinOp ( a , ast . Mod ( ) , b , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         if (
             (a := self.term())
@@ -3348,7 +3348,7 @@ class GeneratedParser(Parser):
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return CHECK_VERSION ( ast . expr , 5 , "The '@' operator is" , ast . BinOp ( a , MatMult , b , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset ) )
+            return CHECK_VERSION ( ast . expr , 5 , "The '@' operator is" , ast . BinOp ( a , ast . MatMult ( ) , b , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset ) )
         self._reset(mark)
         if (
             (factor := self.factor())
@@ -3370,7 +3370,7 @@ class GeneratedParser(Parser):
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . UnaryOp ( UAdd , a , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . UnaryOp ( ast . UAdd ( ) , a , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         if (
             (literal := self.expect('-'))
@@ -3379,7 +3379,7 @@ class GeneratedParser(Parser):
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . UnaryOp ( USub , a , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . UnaryOp ( ast . USub ( ) , a , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         if (
             (literal := self.expect('~'))
@@ -3388,7 +3388,7 @@ class GeneratedParser(Parser):
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . UnaryOp ( Invert , a , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . UnaryOp ( ast . Invert ( ) , a , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         if (
             (power := self.power())
@@ -9008,7 +9008,7 @@ class GeneratedParser(Parser):
         return None
 
     KEYWORDS = ('return', 'import', 'from', 'raise', 'pass', 'del', 'yield', 'assert', 'break', 'continue', 'global', 'nonlocal', 'def', 'if', 'class', 'with', 'for', 'try', 'while', 'as', 'elif', 'else', 'in', 'except', 'finally', 'None', 'True', 'False', 'or', 'and', 'not', 'is', 'lambda')
-    SOFT_KEYWORDS = ('case', 'match', '_')
+    SOFT_KEYWORDS = ('_', 'case', 'match')
 
 def main():
   for filename in sys.argv[1:]:

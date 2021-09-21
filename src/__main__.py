@@ -12,6 +12,9 @@ def main():
     pt_file = open(pt_filename, 'r')
     parser = parse.GeneratedParser(lexer.Tokenizer(pt_file, pt_filename))
     parsed = parser.file()
+    if parsed is None:
+      print('Failure to parse :-(')
+      continue
     # For debugging:
     #unparser = ast._Unparser()
     #unparser._source = []

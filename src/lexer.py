@@ -80,24 +80,24 @@ class Lexer:
     if self.pos == self.len or any(
       rec.match(self.code, self.pos) for rec in [Newline, Comment]): return
 
-    def indent_token(type):
-      self.tokens.append(TokenInfo(type,
-        self.code[self.line_start:self.pos],
-        (self.line_num, 0), (self.line_num, self.pos - self.line_start),
-        self.line))
-
     indent = self.indents[-1]
     if self.indent > indent:
       self.indents.append(self.indent)
-      indent_token(token.INDENT)
+      self.indent_token(token.INDENT)
     while self.indent < indent:
       self.indents.pop()
-      indent_token(token.DEDENT)
+      self.indent_token(token.DEDENT)
       if not self.indents:
         self.error('dedent beyond global indent')
       indent = self.indents[-1]
       if self.indent > indent:
         self.error(f'dedent to {self.indent} but expected {self.indents[-1]}')
+
+  def indent_token(self, type):
+    self.tokens.append(TokenInfo(type,
+      self.code[self.line_start:self.pos],
+      (self.line_num, 0), (self.line_num, self.pos - self.line_start),
+      self.line))
 
   def measure_indent(self):
     indent = 0
@@ -118,6 +118,9 @@ class Lexer:
   def tokenize(self):
     while self.pos < self.len:
       self.token()
+    while len(self.indents) > 1:
+      self.indent_token(token.DEDENT)
+      self.indents.pop()
 
   def token(self):
     # Strip leading whitespace
