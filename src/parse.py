@@ -926,6 +926,30 @@ class GeneratedParser(Parser):
         return None
 
     @memoize
+    def colon_block(self) -> Optional[List [ast . stmt]]:
+        # colon_block: ':' block | NEWLINE INDENT statements DEDENT
+        mark = self._mark()
+        if (
+            (literal := self.expect(':'))
+            and
+            (block := self.block())
+        ):
+            return [literal, block]
+        self._reset(mark)
+        if (
+            (_newline := self.expect('NEWLINE'))
+            and
+            (_indent := self.expect('INDENT'))
+            and
+            (a := self.statements())
+            and
+            (_dedent := self.expect('DEDENT'))
+        ):
+            return a
+        self._reset(mark)
+        return None
+
+    @memoize
     def block(self) -> Optional[List [ast . stmt]]:
         # block: NEWLINE INDENT statements DEDENT | simple_stmts | invalid_block
         mark = self._mark()
@@ -1379,7 +1403,7 @@ class GeneratedParser(Parser):
 
     @memoize
     def if_stmt(self) -> Optional[ast . stmt]:
-        # if_stmt: invalid_if_stmt | 'if' named_expression ':' block elif_stmt | 'if' named_expression ':' block else_block?
+        # if_stmt: invalid_if_stmt | 'if' named_expression colon_block elif_stmt | 'if' named_expression colon_block else_block?
         mark = self._mark()
         tok = self._tokenizer.peek()
         start_lineno, start_col_offset = tok.start
@@ -1393,24 +1417,20 @@ class GeneratedParser(Parser):
             and
             (a := self.named_expression())
             and
-            (literal_1 := self.expect(':'))
-            and
-            (b := self.block())
+            (b := self.colon_block())
             and
             (c := self.elif_stmt())
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . If ( a , b , CHECK ( List [ast . stmt] , [c] ) , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . If ( a , b , [c] , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         if (
             (literal := self.expect('if'))
             and
             (a := self.named_expression())
             and
-            (literal_1 := self.expect(':'))
-            and
-            (b := self.block())
+            (b := self.colon_block())
             and
             (c := self.else_block(),)
         ):
@@ -1422,7 +1442,7 @@ class GeneratedParser(Parser):
 
     @memoize
     def elif_stmt(self) -> Optional[ast . stmt]:
-        # elif_stmt: invalid_elif_stmt | 'elif' named_expression ':' block elif_stmt | 'elif' named_expression ':' block else_block?
+        # elif_stmt: invalid_elif_stmt | 'elif' named_expression colon_block elif_stmt | 'elif' named_expression colon_block else_block?
         mark = self._mark()
         tok = self._tokenizer.peek()
         start_lineno, start_col_offset = tok.start
@@ -1436,24 +1456,20 @@ class GeneratedParser(Parser):
             and
             (a := self.named_expression())
             and
-            (literal_1 := self.expect(':'))
-            and
-            (b := self.block())
+            (b := self.colon_block())
             and
             (c := self.elif_stmt())
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . If ( a , b , CHECK ( List [ast . stmt] , [c] ) , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . If ( a , b , [c] , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         if (
             (literal := self.expect('elif'))
             and
             (a := self.named_expression())
             and
-            (literal_1 := self.expect(':'))
-            and
-            (b := self.block())
+            (b := self.colon_block())
             and
             (c := self.else_block(),)
         ):
@@ -1465,7 +1481,7 @@ class GeneratedParser(Parser):
 
     @memoize
     def else_block(self) -> Optional[List [ast . stmt]]:
-        # else_block: invalid_else_stmt | 'else' &&':' block
+        # else_block: invalid_else_stmt | 'else' ':'? block
         mark = self._mark()
         if (
             (invalid_else_stmt := self.invalid_else_stmt())
@@ -1475,7 +1491,7 @@ class GeneratedParser(Parser):
         if (
             (literal := self.expect('else'))
             and
-            (forced := self.expect_forced(self.expect(':'), "':'"))
+            (opt := self.expect(':'),)
             and
             (b := self.block())
         ):
@@ -3035,7 +3051,7 @@ class GeneratedParser(Parser):
             and
             (a := self.bitwise_or())
         ):
-            return CmpOpExprPair ( ast . NotEq ( ) , a )
+            return CmpopExprPair ( ast . NotEq ( ) , a )
         self._reset(mark)
         return None
 
@@ -3048,7 +3064,7 @@ class GeneratedParser(Parser):
             and
             (a := self.bitwise_or())
         ):
-            return CmpOpExprPair ( ast . LtE ( ) , a )
+            return CmpopExprPair ( ast . LtE ( ) , a )
         self._reset(mark)
         return None
 
@@ -3061,7 +3077,7 @@ class GeneratedParser(Parser):
             and
             (a := self.bitwise_or())
         ):
-            return CmpOpExprPair ( ast . Lt ( ) , a )
+            return CmpopExprPair ( ast . Lt ( ) , a )
         self._reset(mark)
         return None
 
@@ -3074,7 +3090,7 @@ class GeneratedParser(Parser):
             and
             (a := self.bitwise_or())
         ):
-            return CmpOpExprPair ( ast . GtE ( ) , a )
+            return CmpopExprPair ( ast . GtE ( ) , a )
         self._reset(mark)
         return None
 
@@ -3087,7 +3103,7 @@ class GeneratedParser(Parser):
             and
             (a := self.bitwise_or())
         ):
-            return CmpOpExprPair ( ast . Gt ( ) , a )
+            return CmpopExprPair ( ast . Gt ( ) , a )
         self._reset(mark)
         return None
 
@@ -3102,7 +3118,7 @@ class GeneratedParser(Parser):
             and
             (a := self.bitwise_or())
         ):
-            return CmpOpExprPair ( ast . NotIn ( ) , a )
+            return CmpopExprPair ( ast . NotIn ( ) , a )
         self._reset(mark)
         return None
 
@@ -3115,7 +3131,7 @@ class GeneratedParser(Parser):
             and
             (a := self.bitwise_or())
         ):
-            return CmpOpExprPair ( ast . In ( ) , a )
+            return CmpopExprPair ( ast . In ( ) , a )
         self._reset(mark)
         return None
 
@@ -3130,7 +3146,7 @@ class GeneratedParser(Parser):
             and
             (a := self.bitwise_or())
         ):
-            return CmpOpExprPair ( ast . IsNot ( ) , a )
+            return CmpopExprPair ( ast . IsNot ( ) , a )
         self._reset(mark)
         return None
 
@@ -3143,7 +3159,7 @@ class GeneratedParser(Parser):
             and
             (a := self.bitwise_or())
         ):
-            return CmpOpExprPair ( ast . Is ( ) , a )
+            return CmpopExprPair ( ast . Is ( ) , a )
         self._reset(mark)
         return None
 
@@ -5769,23 +5785,14 @@ class GeneratedParser(Parser):
 
     @memoize
     def invalid_if_stmt(self) -> Optional[Any]:
-        # invalid_if_stmt: 'if' named_expression NEWLINE | 'if' named_expression ':' NEWLINE !INDENT
+        # invalid_if_stmt: 'if' named_expression ':'? NEWLINE !INDENT
         mark = self._mark()
-        if (
-            (literal := self.expect('if'))
-            and
-            (named_expression := self.named_expression())
-            and
-            (_newline := self.expect('NEWLINE'))
-        ):
-            return RAISE_SYNTAX_ERROR ( "expected ':'" )
-        self._reset(mark)
         if (
             (a := self.expect('if'))
             and
             (a_1 := self.named_expression())
             and
-            (literal := self.expect(':'))
+            (opt := self.expect(':'),)
             and
             (_newline := self.expect('NEWLINE'))
             and
@@ -5797,23 +5804,14 @@ class GeneratedParser(Parser):
 
     @memoize
     def invalid_elif_stmt(self) -> Optional[Any]:
-        # invalid_elif_stmt: 'elif' named_expression NEWLINE | 'elif' named_expression ':' NEWLINE !INDENT
+        # invalid_elif_stmt: 'elif' named_expression ':'? NEWLINE !INDENT
         mark = self._mark()
-        if (
-            (literal := self.expect('elif'))
-            and
-            (named_expression := self.named_expression())
-            and
-            (_newline := self.expect('NEWLINE'))
-        ):
-            return RAISE_SYNTAX_ERROR ( "expected ':'" )
-        self._reset(mark)
         if (
             (a := self.expect('elif'))
             and
             (named_expression := self.named_expression())
             and
-            (literal := self.expect(':'))
+            (opt := self.expect(':'),)
             and
             (_newline := self.expect('NEWLINE'))
             and
@@ -5825,12 +5823,12 @@ class GeneratedParser(Parser):
 
     @memoize
     def invalid_else_stmt(self) -> Optional[Any]:
-        # invalid_else_stmt: 'else' ':' NEWLINE !INDENT
+        # invalid_else_stmt: 'else' ':'? NEWLINE !INDENT
         mark = self._mark()
         if (
             (a := self.expect('else'))
             and
-            (literal := self.expect(':'))
+            (opt := self.expect(':'),)
             and
             (_newline := self.expect('NEWLINE'))
             and
@@ -9008,7 +9006,7 @@ class GeneratedParser(Parser):
         return None
 
     KEYWORDS = ('return', 'import', 'from', 'raise', 'pass', 'del', 'yield', 'assert', 'break', 'continue', 'global', 'nonlocal', 'def', 'if', 'class', 'with', 'for', 'try', 'while', 'as', 'elif', 'else', 'in', 'except', 'finally', 'None', 'True', 'False', 'or', 'and', 'not', 'is', 'lambda')
-    SOFT_KEYWORDS = ('_', 'case', 'match')
+    SOFT_KEYWORDS = ('_', 'match', 'case')
 
 def main():
   for filename in sys.argv[1:]:

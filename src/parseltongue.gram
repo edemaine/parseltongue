@@ -328,6 +328,10 @@ dotted_name[ast.expr]:
 # Common elements
 # ---------------
 
+colon_block[List[ast.stmt]] (memo):
+    | ':' block
+    | NEWLINE INDENT a=statements DEDENT { a }
+
 block[List[ast.stmt]] (memo):
     | NEWLINE INDENT a=statements DEDENT { a }
     | simple_stmts
@@ -442,17 +446,15 @@ default[ast.expr]: '=' a=expression { a }
 
 if_stmt[ast.stmt]:
     | invalid_if_stmt
-    | 'if' a=named_expression ':' b=block c=elif_stmt {
-        ast.If(a, b, CHECK(List[ast.stmt], [c]), LOCATIONS) }
-    | 'if' a=named_expression ':' b=block c=[else_block] { ast.If(a, b, c, LOCATIONS) }
+    | 'if' a=named_expression b=colon_block c=elif_stmt { ast.If(a, b, [c], LOCATIONS) }
+    | 'if' a=named_expression b=colon_block c=[else_block] { ast.If(a, b, c, LOCATIONS) }
 elif_stmt[ast.stmt]:
     | invalid_elif_stmt
-    | 'elif' a=named_expression ':' b=block c=elif_stmt {
-        ast.If(a, b, CHECK(List[ast.stmt], [c]), LOCATIONS) }
-    | 'elif' a=named_expression ':' b=block c=[else_block] { ast.If(a, b, c, LOCATIONS) }
+    | 'elif' a=named_expression b=colon_block c=elif_stmt { ast.If(a, b, [c], LOCATIONS) }
+    | 'elif' a=named_expression b=colon_block c=[else_block] { ast.If(a, b, c, LOCATIONS) }
 else_block[List[ast.stmt]]:
     | invalid_else_stmt
-    | 'else' &&':' b=block { b }
+    | 'else' ':'? b=block { b }
 
 # While statement
 # ---------------
@@ -784,15 +786,15 @@ compare_op_bitwise_or_pair[CmpopExprPair]:
 
 eq_bitwise_or[CmpopExprPair]: '==' a=bitwise_or { CmpopExprPair(ast.Eq(), a) }
 noteq_bitwise_or[CmpopExprPair]:
-    | (tok='!=' { None if _PyPegen_check_barry_as_flufl(p, tok) else tok}) a=bitwise_or { CmpOpExprPair(ast.NotEq(), a) }
-lte_bitwise_or[CmpopExprPair]: '<=' a=bitwise_or { CmpOpExprPair(ast.LtE(), a) }
-lt_bitwise_or[CmpopExprPair]: '<' a=bitwise_or { CmpOpExprPair(ast.Lt(), a) }
-gte_bitwise_or[CmpopExprPair]: '>=' a=bitwise_or { CmpOpExprPair(ast.GtE(), a) }
-gt_bitwise_or[CmpopExprPair]: '>' a=bitwise_or { CmpOpExprPair(ast.Gt(), a) }
-notin_bitwise_or[CmpopExprPair]: 'not' 'in' a=bitwise_or { CmpOpExprPair(ast.NotIn(), a) }
-in_bitwise_or[CmpopExprPair]: 'in' a=bitwise_or { CmpOpExprPair(ast.In(), a) }
-isnot_bitwise_or[CmpopExprPair]: 'is' 'not' a=bitwise_or { CmpOpExprPair(ast.IsNot(), a) }
-is_bitwise_or[CmpopExprPair]: 'is' a=bitwise_or { CmpOpExprPair(ast.Is(), a) }
+    | (tok='!=' { None if _PyPegen_check_barry_as_flufl(p, tok) else tok}) a=bitwise_or { CmpopExprPair(ast.NotEq(), a) }
+lte_bitwise_or[CmpopExprPair]: '<=' a=bitwise_or { CmpopExprPair(ast.LtE(), a) }
+lt_bitwise_or[CmpopExprPair]: '<' a=bitwise_or { CmpopExprPair(ast.Lt(), a) }
+gte_bitwise_or[CmpopExprPair]: '>=' a=bitwise_or { CmpopExprPair(ast.GtE(), a) }
+gt_bitwise_or[CmpopExprPair]: '>' a=bitwise_or { CmpopExprPair(ast.Gt(), a) }
+notin_bitwise_or[CmpopExprPair]: 'not' 'in' a=bitwise_or { CmpopExprPair(ast.NotIn(), a) }
+in_bitwise_or[CmpopExprPair]: 'in' a=bitwise_or { CmpopExprPair(ast.In(), a) }
+isnot_bitwise_or[CmpopExprPair]: 'is' 'not' a=bitwise_or { CmpopExprPair(ast.IsNot(), a) }
+is_bitwise_or[CmpopExprPair]: 'is' a=bitwise_or { CmpopExprPair(ast.Is(), a) }
 
 # Logical operators
 # -----------------
@@ -1305,15 +1307,15 @@ invalid_class_pattern:
 invalid_class_argument_pattern[List[ast.pattern]]:
     | [positional_patterns ','] keyword_patterns ',' a=positional_patterns { a }
 invalid_if_stmt:
-    | 'if' named_expression NEWLINE { RAISE_SYNTAX_ERROR("expected ':'") }
-    | a='if' a=named_expression ':' NEWLINE !INDENT {
+    #| 'if' named_expression NEWLINE { RAISE_SYNTAX_ERROR("expected ':'") }
+    | a='if' a=named_expression ':'? NEWLINE !INDENT {
         RAISE_INDENTATION_ERROR("expected an indented block after 'if' statement on line %d", a.lineno) }
 invalid_elif_stmt:
-    | 'elif' named_expression NEWLINE { RAISE_SYNTAX_ERROR("expected ':'") }
-    | a='elif' named_expression ':' NEWLINE !INDENT {
+    #| 'elif' named_expression NEWLINE { RAISE_SYNTAX_ERROR("expected ':'") }
+    | a='elif' named_expression ':'? NEWLINE !INDENT {
         RAISE_INDENTATION_ERROR("expected an indented block after 'elif' statement on line %d", a.lineno) }
 invalid_else_stmt:
-    | a='else' ':' NEWLINE !INDENT {
+    | a='else' ':'? NEWLINE !INDENT {
         RAISE_INDENTATION_ERROR("expected an indented block after 'else' statement on line %d", a.lineno) }
 invalid_while_stmt:
     | 'while' named_expression NEWLINE { RAISE_SYNTAX_ERROR("expected ':'") }
