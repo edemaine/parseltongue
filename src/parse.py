@@ -6,6 +6,12 @@ from dataclasses import dataclass
 from pegen.parser import *
 import lexer
 
+class Raw(ast.AST):
+  _fields = ('r',)
+  __new__ = ast._new
+ast.Raw = Raw
+ast._Unparser.visit_Raw = lambda self, node: self.write(node.r)
+
 class waiting_for_py310: pass
 ast.match_case = waiting_for_py310
 ast.pattern = waiting_for_py310
@@ -3939,7 +3945,7 @@ class GeneratedParser(Parser):
         if (
             (a := self._loop1_105())
         ):
-            return a
+            return ast . Raw ( ' ' . join ( token . string for token in a ) )
         self._reset(mark)
         return None
 
@@ -9006,7 +9012,7 @@ class GeneratedParser(Parser):
         return None
 
     KEYWORDS = ('return', 'import', 'from', 'raise', 'pass', 'del', 'yield', 'assert', 'break', 'continue', 'global', 'nonlocal', 'def', 'if', 'class', 'with', 'for', 'try', 'while', 'as', 'elif', 'else', 'in', 'except', 'finally', 'None', 'True', 'False', 'or', 'and', 'not', 'is', 'lambda')
-    SOFT_KEYWORDS = ('_', 'match', 'case')
+    SOFT_KEYWORDS = ('case', 'match', '_')
 
 def main():
   for filename in sys.argv[1:]:

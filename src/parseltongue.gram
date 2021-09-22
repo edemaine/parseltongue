@@ -9,6 +9,12 @@ from dataclasses import dataclass
 from pegen.parser import *
 import lexer
 
+class Raw(ast.AST):
+  _fields = ('r',)
+  __new__ = ast._new
+ast.Raw = Raw
+ast._Unparser.visit_Raw = lambda self, node: self.write(node.r)
+
 class waiting_for_py310: pass
 ast.match_case = waiting_for_py310
 ast.pattern = waiting_for_py310
@@ -943,7 +949,8 @@ lambda_param[ast.arg]: a=NAME { ast.arg(a.id, None, None, LOCATIONS) }
 # LITERALS
 # ========
 
-strings[ast.expr] (memo): a=STRING+ { a
+strings[ast.expr] (memo): a=STRING+ {
+    ast.Raw(' '.join(token.string for token in a))
     # xxx _PyPegen_concatenate_strings(p, a)
     }
 
