@@ -24,9 +24,6 @@ Newline = compile(r'\r?\n')
 Triple = compile(
   tokenize.StringPrefix + "'''" + tokenize.Single3 + '|' +
   tokenize.StringPrefix + '"""' + tokenize.Double3)
-Intnumber = compile(tokenize.Intnumber)
-Floatnumber = compile(tokenize.Floatnumber)
-Imagnumber = compile(tokenize.Imagnumber)
 token_rec = [
   (token.OP, compile(tokenize.Special)),
   (token.NUMBER, compile(tokenize.Number)),
@@ -189,17 +186,6 @@ class Lexer:
         line = token.end[0]
       print(f' {tok_name[token.type]}{repr(token.string)}', end = '')
     print()
-
-def parse_number(token):
-  if not token: return token
-  if Intnumber.match(token.string):
-    return int(token.string)
-  elif Floatnumber.match(token.string):
-    return float(token.string)
-  elif Imagnumber.match(token.string):
-    return complex(token.string)
-  else:
-    raise ValueError(f'invalid number {repr(token.string)}')
 
 class Tokenizer(pegen.tokenizer.Tokenizer):
   def __init__(self, file, filename):
