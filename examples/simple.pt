@@ -8,3 +8,14 @@
   elif x >= 0
     print(f'small')
   else print(u'negative')
+
+  unless x > 5
+    print('*' * x)
+  else print('!!!')
+
+  while x or y
+    pass
+  until x or y
+    pass
+  loop
+    pass

@@ -663,7 +663,7 @@ class ParseltongueParser(Parser):
 
     @memoize
     def compound_stmt(self) -> Optional[Any]:
-        # compound_stmt: &('def' | '@' | 'async') function_def | &'if' if_stmt | &('class' | '@') class_def | &('with' | 'async') with_stmt | &('for' | 'async') for_stmt | &'try' try_stmt | &'while' while_stmt | match_stmt
+        # compound_stmt: &('def' | '@' | 'async') function_def | &'if' if_stmt | &'unless' unless_stmt | &('class' | '@') class_def | &('with' | 'async') with_stmt | &('for' | 'async') for_stmt | &'try' try_stmt | &'while' while_stmt | &'until' until_stmt | &'loop' loop_stmt | match_stmt
         mark = self._mark()
         if (
             self.positive_lookahead(self._tmp_7, )
@@ -678,6 +678,13 @@ class ParseltongueParser(Parser):
             (if_stmt := self.if_stmt())
         ):
             return if_stmt
+        self._reset(mark)
+        if (
+            self.positive_lookahead(self.expect, 'unless')
+            and
+            (unless_stmt := self.unless_stmt())
+        ):
+            return unless_stmt
         self._reset(mark)
         if (
             self.positive_lookahead(self._tmp_8, )
@@ -713,6 +720,20 @@ class ParseltongueParser(Parser):
             (while_stmt := self.while_stmt())
         ):
             return while_stmt
+        self._reset(mark)
+        if (
+            self.positive_lookahead(self.expect, 'until')
+            and
+            (until_stmt := self.until_stmt())
+        ):
+            return until_stmt
+        self._reset(mark)
+        if (
+            self.positive_lookahead(self.expect, 'loop')
+            and
+            (loop_stmt := self.loop_stmt())
+        ):
+            return loop_stmt
         self._reset(mark)
         if (
             (match_stmt := self.match_stmt())
@@ -1777,6 +1798,45 @@ class ParseltongueParser(Parser):
         return None
 
     @memoize
+    def unless_stmt(self) -> Optional[ast . If]:
+        # unless_stmt: invalid_unless_stmt | 'unless' named_expression colon_block elif_stmt | 'unless' named_expression colon_block else_block?
+        mark = self._mark()
+        tok = self._tokenizer.peek()
+        start_lineno, start_col_offset = tok.start
+        if (
+            (invalid_unless_stmt := self.invalid_unless_stmt())
+        ):
+            return None  # pragma: no cover
+        self._reset(mark)
+        if (
+            (literal := self.expect('unless'))
+            and
+            (a := self.named_expression())
+            and
+            (b := self.colon_block())
+            and
+            (c := self.elif_stmt())
+        ):
+            tok = self._tokenizer.get_last_non_whitespace_token()
+            end_lineno, end_col_offset = tok.end
+            return ast . If ( test = ast . UnaryOp ( op = ast . Not ( ) , operand = a ) , body = b , orelse = c or [] , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+        self._reset(mark)
+        if (
+            (literal := self.expect('unless'))
+            and
+            (a := self.named_expression())
+            and
+            (b := self.colon_block())
+            and
+            (c := self.else_block(),)
+        ):
+            tok = self._tokenizer.get_last_non_whitespace_token()
+            end_lineno, end_col_offset = tok.end
+            return ast . If ( test = ast . UnaryOp ( op = ast . Not ( ) , operand = a ) , body = b , orelse = c or [] , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+        self._reset(mark)
+        return None
+
+    @memoize
     def elif_stmt(self) -> Optional[List [ast . If]]:
         # elif_stmt: invalid_elif_stmt | 'elif' named_expression colon_block elif_stmt | 'elif' named_expression colon_block else_block?
         mark = self._mark()
@@ -1837,7 +1897,7 @@ class ParseltongueParser(Parser):
 
     @memoize
     def while_stmt(self) -> Optional[ast . While]:
-        # while_stmt: invalid_while_stmt | 'while' named_expression ':' block else_block?
+        # while_stmt: invalid_while_stmt | 'while' named_expression colon_block else_block?
         mark = self._mark()
         tok = self._tokenizer.peek()
         start_lineno, start_col_offset = tok.start
@@ -1851,15 +1911,63 @@ class ParseltongueParser(Parser):
             and
             (a := self.named_expression())
             and
-            (literal_1 := self.expect(':'))
-            and
-            (b := self.block())
+            (b := self.colon_block())
             and
             (c := self.else_block(),)
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
             return ast . While ( test = a , body = b , orelse = c or [] , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+        self._reset(mark)
+        return None
+
+    @memoize
+    def until_stmt(self) -> Optional[ast . While]:
+        # until_stmt: invalid_until_stmt | 'until' named_expression colon_block else_block?
+        mark = self._mark()
+        tok = self._tokenizer.peek()
+        start_lineno, start_col_offset = tok.start
+        if (
+            (invalid_until_stmt := self.invalid_until_stmt())
+        ):
+            return None  # pragma: no cover
+        self._reset(mark)
+        if (
+            (literal := self.expect('until'))
+            and
+            (a := self.named_expression())
+            and
+            (b := self.colon_block())
+            and
+            (c := self.else_block(),)
+        ):
+            tok = self._tokenizer.get_last_non_whitespace_token()
+            end_lineno, end_col_offset = tok.end
+            return ast . While ( test = ast . UnaryOp ( op = ast . Not ( ) , operand = a ) , body = b , orelse = c or [] , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+        self._reset(mark)
+        return None
+
+    @memoize
+    def loop_stmt(self) -> Optional[ast . While]:
+        # loop_stmt: invalid_loop_stmt | 'loop' colon_block else_block?
+        mark = self._mark()
+        tok = self._tokenizer.peek()
+        start_lineno, start_col_offset = tok.start
+        if (
+            (invalid_loop_stmt := self.invalid_loop_stmt())
+        ):
+            return None  # pragma: no cover
+        self._reset(mark)
+        if (
+            (literal := self.expect('loop'))
+            and
+            (b := self.colon_block())
+            and
+            (c := self.else_block(),)
+        ):
+            tok = self._tokenizer.get_last_non_whitespace_token()
+            end_lineno, end_col_offset = tok.end
+            return ast . While ( test = ast . Constant ( value = True ) , body = b , orelse = c or [] , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         return None
 
@@ -6159,6 +6267,25 @@ class ParseltongueParser(Parser):
         return None
 
     @memoize
+    def invalid_unless_stmt(self) -> Optional[NoReturn]:
+        # invalid_unless_stmt: 'unless' named_expression ':'? NEWLINE !INDENT
+        mark = self._mark()
+        if (
+            (a := self.expect('unless'))
+            and
+            (a_1 := self.named_expression())
+            and
+            (opt := self.expect(':'),)
+            and
+            (_newline := self.expect('NEWLINE'))
+            and
+            self.negative_lookahead(self.expect, 'INDENT')
+        ):
+            return self . raise_indentation_error ( f"expected an indented block after 'unless' statement on line {a.start[0]}" )
+        self._reset(mark)
+        return None
+
+    @memoize
     def invalid_elif_stmt(self) -> Optional[NoReturn]:
         # invalid_elif_stmt: 'elif' named_expression ':'? NEWLINE !INDENT
         mark = self._mark()
@@ -6196,29 +6323,58 @@ class ParseltongueParser(Parser):
 
     @memoize
     def invalid_while_stmt(self) -> Optional[NoReturn]:
-        # invalid_while_stmt: 'while' named_expression NEWLINE | 'while' named_expression ':' NEWLINE !INDENT
+        # invalid_while_stmt: 'while' named_expression ':'? NEWLINE !INDENT
         mark = self._mark()
-        if (
-            (literal := self.expect('while'))
-            and
-            (named_expression := self.named_expression())
-            and
-            (_newline := self.expect('NEWLINE'))
-        ):
-            return self . store_syntax_error ( "expected ':'" )
-        self._reset(mark)
         if (
             (a := self.expect('while'))
             and
             (named_expression := self.named_expression())
             and
-            (literal := self.expect(':'))
+            (opt := self.expect(':'),)
             and
             (_newline := self.expect('NEWLINE'))
             and
             self.negative_lookahead(self.expect, 'INDENT')
         ):
             return self . raise_indentation_error ( f"expected an indented block after 'while' statement on line {a.start[0]}" )
+        self._reset(mark)
+        return None
+
+    @memoize
+    def invalid_until_stmt(self) -> Optional[NoReturn]:
+        # invalid_until_stmt: 'until' named_expression ':'? NEWLINE !INDENT
+        mark = self._mark()
+        if (
+            (a := self.expect('until'))
+            and
+            (named_expression := self.named_expression())
+            and
+            (opt := self.expect(':'),)
+            and
+            (_newline := self.expect('NEWLINE'))
+            and
+            self.negative_lookahead(self.expect, 'INDENT')
+        ):
+            return self . raise_indentation_error ( f"expected an indented block after 'until' statement on line {a.start[0]}" )
+        self._reset(mark)
+        return None
+
+    @memoize
+    def invalid_loop_stmt(self) -> Optional[NoReturn]:
+        # invalid_loop_stmt: 'loop' named_expression ':'? NEWLINE !INDENT
+        mark = self._mark()
+        if (
+            (a := self.expect('loop'))
+            and
+            (named_expression := self.named_expression())
+            and
+            (opt := self.expect(':'),)
+            and
+            (_newline := self.expect('NEWLINE'))
+            and
+            self.negative_lookahead(self.expect, 'INDENT')
+        ):
+            return self . raise_indentation_error ( f"expected an indented block after 'loop' statement on line {a.start[0]}" )
         self._reset(mark)
         return None
 
@@ -9376,8 +9532,8 @@ class ParseltongueParser(Parser):
         self._reset(mark)
         return None
 
-    KEYWORDS = ('async', 'finally', 'else', 'as', 'not', 'or', 'in', 'nonlocal', 'from', 'is', 'assert', 'break', 'while', 'await', 'yield', 'return', 'class', 'None', 'True', 'if', 'for', 'except', 'continue', 'def', 'del', 'global', 'raise', 'elif', 'lambda', 'with', 'import', 'try', 'pass', 'and', 'False')
-    SOFT_KEYWORDS = ('case', 'match', '_')
+    KEYWORDS = ('None', 'in', 'elif', 'async', 'until', 'await', 'or', 'class', 'not', 'raise', 'return', 'finally', 'and', 'break', 'global', 'for', 'import', 'assert', 'else', 'from', 'as', 'unless', 'True', 'def', 'del', 'is', 'continue', 'while', 'if', 'loop', 'pass', 'with', 'yield', 'lambda', 'nonlocal', 'try', 'except', 'False')
+    SOFT_KEYWORDS = ('match', '_', 'case')
 
 def main():
   import lexer

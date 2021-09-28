@@ -10,3 +10,13 @@ elif x >= 0:
     print(f'small')
 else:
     print(u'negative')
+if not x > 5:
+    print('*' * x)
+else:
+    print('!!!')
+while x or y:
+    pass
+while not (x or y):
+    pass
+while True:
+    pass

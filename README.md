@@ -2,8 +2,8 @@
 
 ## Features So Far
 
-* `if`, `elif`, `else` do not need colons after the condition,
-  except when using one-line `if` or `elif`.
+* `if`, `elif`, `else`, `while` do not need colons after the condition,
+  except when using one-line `if`, `elif`, `while`.
 
   ```py
   if x > 10
@@ -12,6 +12,9 @@
     print('small')
   else print('negative')
   ```
+* `unless` shorthand for `if not`.
+* `until` shorthand for `while not`.
+* `loop` shorthand for `while True`.
 
 ## Usage
 

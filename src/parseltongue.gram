@@ -450,11 +450,14 @@ simple_stmt (memo):
 compound_stmt:
     | &('def' | '@' | 'async') function_def
     | &'if' if_stmt
+    | &'unless' unless_stmt
     | &('class' | '@') class_def
     | &('with' | 'async') with_stmt
     | &('for' | 'async') for_stmt
     | &'try' try_stmt
     | &'while' while_stmt
+    | &'until' until_stmt
+    | &'loop' loop_stmt
     | match_stmt
 
 # SIMPLE STATEMENTS
@@ -743,6 +746,16 @@ if_stmt[ast.If]:
     | invalid_if_stmt
     | 'if' a=named_expression b=colon_block c=elif_stmt { ast.If(test=a, body=b, orelse=c or [], LOCATIONS) }
     | 'if' a=named_expression b=colon_block c=[else_block] { ast.If(test=a, body=b, orelse=c or [], LOCATIONS) }
+unless_stmt[ast.If]:
+    | invalid_unless_stmt
+    | 'unless' a=named_expression b=colon_block c=elif_stmt { ast.If(
+          test=ast.UnaryOp(op=ast.Not(), operand=a),
+          body=b, orelse=c or [], LOCATIONS)
+      }
+    | 'unless' a=named_expression b=colon_block c=[else_block] { ast.If(
+          test=ast.UnaryOp(op=ast.Not(), operand=a),
+          body=b, orelse=c or [], LOCATIONS)
+      }
 elif_stmt[List[ast.If]]:
     | invalid_elif_stmt
     | 'elif' a=named_expression b=colon_block c=elif_stmt { [ast.If(test=a, body=b, orelse=c, LOCATIONS)] }
@@ -756,8 +769,20 @@ else_block[list]:
 
 while_stmt[ast.While]:
     | invalid_while_stmt
-    | 'while' a=named_expression ':' b=block c=[else_block] {
+    | 'while' a=named_expression b=colon_block c=[else_block] {
         ast.While(test=a, body=b, orelse=c or [], LOCATIONS)
+     }
+until_stmt[ast.While]:
+    | invalid_until_stmt
+    | 'until' a=named_expression b=colon_block c=[else_block] {
+        ast.While(test=ast.UnaryOp(op=ast.Not(), operand=a),
+            body=b, orelse=c or [], LOCATIONS)
+     }
+loop_stmt[ast.While]:
+    | invalid_loop_stmt
+    | 'loop' b=colon_block c=[else_block] {
+        ast.While(test=ast.Constant(value=True),
+            body=b, orelse=c or [], LOCATIONS)
      }
 
 # For statement
@@ -1867,6 +1892,13 @@ invalid_if_stmt[NoReturn]:
             f"expected an indented block after 'if' statement on line {a.start[0]}"
         )
      }
+invalid_unless_stmt[NoReturn]:
+    #| 'unless' named_expression NEWLINE { self.raise_syntax_error("expected ':'") }
+    | a='unless' a=named_expression ':'? NEWLINE !INDENT {
+        self.raise_indentation_error(
+            f"expected an indented block after 'unless' statement on line {a.start[0]}"
+        )
+     }
 invalid_elif_stmt[NoReturn]:
     #| 'elif' named_expression NEWLINE { self.raise_syntax_error("expected ':'") }
     | a='elif' named_expression ':'? NEWLINE !INDENT {
@@ -1881,10 +1913,24 @@ invalid_else_stmt[NoReturn]:
         )
      }
 invalid_while_stmt[NoReturn]:
-    | 'while' named_expression NEWLINE { self.store_syntax_error("expected ':'") }
-    | a='while' named_expression ':' NEWLINE !INDENT {
+    #| 'while' named_expression NEWLINE { self.store_syntax_error("expected ':'") }
+    | a='while' named_expression ':'? NEWLINE !INDENT {
         self.raise_indentation_error(
             f"expected an indented block after 'while' statement on line {a.start[0]}"
+        )
+     }
+invalid_until_stmt[NoReturn]:
+    #| 'until' named_expression NEWLINE { self.store_syntax_error("expected ':'") }
+    | a='until' named_expression ':'? NEWLINE !INDENT {
+        self.raise_indentation_error(
+            f"expected an indented block after 'until' statement on line {a.start[0]}"
+        )
+     }
+invalid_loop_stmt[NoReturn]:
+    #| 'loop' named_expression NEWLINE { self.store_syntax_error("expected ':'") }
+    | a='loop' named_expression ':'? NEWLINE !INDENT {
+        self.raise_indentation_error(
+            f"expected an indented block after 'loop' statement on line {a.start[0]}"
         )
      }
 invalid_for_stmt[NoReturn]:

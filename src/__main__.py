@@ -1,4 +1,4 @@
-import ast, os, sys
+import ast, os, sys, traceback
 import lexer, parse
 
 def main():
@@ -13,7 +13,8 @@ def main():
     parser = parse.ParseltongueParser(lexer.Tokenizer(pt_file, pt_filename))
     parsed = parser.file()
     if parsed is None:
-      print('Failure to parse :-(')
+      err = parser.make_syntax_error(pt_filename)
+      traceback.print_exception(err.__class__, err, None)
       continue
     # For debugging:
     #unparser = ast._Unparser()
