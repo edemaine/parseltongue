@@ -56,7 +56,9 @@ class Lexer:
     self.code = code
     self.len = len(code)
     self.pos = 0
+    self.line_start = self.pos
     self.line_num = 1
+    self.set_line()
     # Like CoffeeScript but unlike Python, allow an overall indentation.
     # (Useful for copy/pasting portions of another file.)
     self.indents = [self.measure_indent()[0]]
@@ -67,13 +69,12 @@ class Lexer:
   def __iter__(self):
     return iter(self.tokens)
 
-  def start_line(self):
-    # line_num is incremented in token_from_match
-    #self.line_num += 1
-    self.line_start = self.pos
-    end_of_line = self.code.find('\n')
-    if end_of_line < 0: index = self.len
+  def set_line(self):
+    end_of_line = self.code.find('\n', self.line_start)
+    if end_of_line < 0: end_of_line = self.len
     self.line = self.code[self.line_start:end_of_line]
+
+  def start_line(self):
     self.indent, self.pos = self.measure_indent()
     # Ignore indentation if this is a blank or comment line
     if self.pos == self.len or any(
@@ -164,6 +165,7 @@ class Lexer:
       self.tokens.append(token)
     self.line_start = end_line_start
     self.line_num = end_line_num
+    self.set_line()
     self.pos += end - start
     return token
 
