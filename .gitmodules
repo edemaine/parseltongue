@@ -1,0 +1,3 @@
+[submodule "src/pegen"]
+	path = pegen
+	url = git@github.com:we-like-parsers/pegen.git

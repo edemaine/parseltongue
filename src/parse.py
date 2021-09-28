@@ -9011,8 +9011,8 @@ class GeneratedParser(Parser):
         self._reset(mark)
         return None
 
-    KEYWORDS = ('return', 'import', 'from', 'raise', 'pass', 'del', 'yield', 'assert', 'break', 'continue', 'global', 'nonlocal', 'def', 'if', 'class', 'with', 'for', 'try', 'while', 'as', 'elif', 'else', 'in', 'except', 'finally', 'None', 'True', 'False', 'or', 'and', 'not', 'is', 'lambda')
-    SOFT_KEYWORDS = ('case', '_', 'match')
+    KEYWORDS = ('try', 'False', 'del', 'continue', 'for', 'elif', 'global', 'None', 'nonlocal', 'lambda', 'raise', 'return', 'def', 'break', 'if', 'class', 'and', 'yield', 'is', 'import', 'finally', 'not', 'with', 'assert', 'True', 'in', 'from', 'while', 'else', 'or', 'except', 'as', 'pass')
+    SOFT_KEYWORDS = ('_', 'match', 'case')
 
 def main():
   for filename in sys.argv[1:]:

@@ -1,5 +1,8 @@
-PYTHON = poetry run python
-#PYTHON = python3.9
+#PYTHON = poetry run python
+PYTHON = python3.9
+
+PEGEN_PATH = ../pegen/src
+PEGEN = PYTHONPATH=$(PEGEN_PATH) $(PYTHON) -m pegen 
 
 parse.py: parseltongue.gram
-	$(PYTHON) -m pegen python parseltongue.gram
+	$(PEGEN) parseltongue.gram

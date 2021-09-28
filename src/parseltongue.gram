@@ -1,5 +1,5 @@
 # PEG grammar for Parseltongue,
-# based on the PEG grammar for Python in pegen/python.gram
+# based on the PEG grammar for Python in submodule pegen/data/python.gram
 
 @header '''#!/usr/bin/env python3.9
 
