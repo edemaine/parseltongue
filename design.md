@@ -16,7 +16,13 @@
   * `match`
   * `try`
   * More?
-* `do` for easier scoping
+* CoffeeScript `do (var) -> ...` for easier scoping (or maybe `call`?)
+* `do...while/until` loops and `do...if/unless` late conditions, like so:
+  ```py
+  do
+    code()
+  ...unless condition()
+  ```
 * self via `@`
   * `@foo` in constructor argument
 * (?) Implicit function calls without parens
