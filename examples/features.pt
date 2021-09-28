@@ -1,3 +1,5 @@
+# Planning features through live coding...
+
 ### FUNCTIONS ###
 
 square = (x) -> x ** 2  # implicit return just like lambda
