@@ -5,7 +5,7 @@ if bar % 2 == 0:
 else:
     print(bar)
 if x > 10:
-    print(r'b\xig')
+    print('b\\xig')
 elif x >= 0:
     print(f'small')
 else:
