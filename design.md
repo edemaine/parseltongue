@@ -8,6 +8,8 @@
 
 ## Planned Features
 
+* Colon optional after ✓`if`, ✓`elif`, ✓`else`, ✓`while`, `for`, `try`,
+  `except`, `finally`, etc.
 * Multi-line lambdas via arrow functions
   * (?) Implicit return (but `def` remains as is)
 * Most statements become expressions
@@ -33,8 +35,8 @@
   * Block comments via `###` (incompatible with "Python is Parseltongue")
   * Implicit continuation when ending line with operator
     or starting next line with `.`
-  * Comments on continuation lines
-  * `unless`, `elunless`?, `until`, `loop`
+  * ✓Comments on continuation lines
+  * ✓`unless`, `elunless`?, ✓`until`, ✓`loop`
   * Backwards one-line `if`, `unless`, `for`, `while`, `until`
   * `then` as alternative for one-line `if ...:`
   * `..` (and `...`?) alternative to range and slices
