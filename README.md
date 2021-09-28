@@ -15,6 +15,11 @@
 * `unless` shorthand for `if not`.
 * `until` shorthand for `while not`.
 * `loop` shorthand for `while True`.
+* Implicit continuation when ending a line with an operator:
+  ```py
+  sum = 12345 +
+        54321
+  ```
 * Comments after `\` continuations:
   ```py
   string = \ # comment

@@ -20,4 +20,4 @@ while not (x or y):
     pass
 while True:
     pass
-x = 'hello world!!!'
+x = 'hello world!' * 3 + '\n'

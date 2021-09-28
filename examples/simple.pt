@@ -1,3 +1,4 @@
+
   foo = 5
   bar = 10
   if bar % 2 == 0: print(foo)
@@ -23,4 +24,6 @@
   x = \ # comments allowed after continuation
     'hello ' \ # this comment is between strings
     'world' \
-    '!!!'
+    '!' * # automatic continuation after operator
+    3 +
+    '\n'

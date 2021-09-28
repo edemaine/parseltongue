@@ -2,7 +2,7 @@
 PYTHON = python3.9
 PARSELTONGUE = PYTHONPATH="../pegen/src" $(PYTHON) ../src
 
-%.py: %.pt
+%.py: %.pt ../src/*.py
 	$(PARSELTONGUE) $<
 
 all: simple.py

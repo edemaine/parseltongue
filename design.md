@@ -33,8 +33,8 @@
   (`:=`? or replace current behavior, and break Python compatibility)
 * Minor helpful syntax
   * Block comments via `###` (incompatible with "Python is Parseltongue")
-  * Implicit continuation when ending line with operator
-    or starting next line with `.`
+  * ✓Implicit continuation when ending line with operator
+  * Implicit continuation when starting next line with `.`
   * ✓Comments on continuation lines
   * ✓`unless`, `elunless`?, ✓`until`, ✓`loop`
   * Backwards one-line `if`, `unless`, `for`, `while`, `until`

@@ -22,6 +22,7 @@ Comment = compile(tokenize.Comment)
 Whitespace = compile(tokenize.Whitespace)
 Newline_src = r'\r?\n'
 Newline = compile(Newline_src)
+NewlineOrComment = compile(tokenize.group(Newline_src, tokenize.Comment))
 Continuation = compile(r'\\' + tokenize.Whitespace +
   tokenize.maybe(tokenize.Comment) + Newline_src)
 Triple = compile(
@@ -34,6 +35,20 @@ token_rec = [
   (token.STRING, compile(tokenize.String)),
   (token.NAME, compile(tokenize.Name)),  # must go after NUMBER
 ]
+
+IMPLICIT_CONTINUATION = {
+  token.OP: {
+    ',', '+', '-', '*', '/', '|', '&', '<', '>', '=', '.', '%', '==', '!=',
+    '<=', '>=', '~', '^', '<<', '>>', '**', '+=', '-=', '/=', '%=', '&=',
+    '|=', '^=', '<<=', '>>=', '**=', '//', '//=', '@', '@=', ':=',
+  },
+  token.NAME: {
+    'and', 'or', 'not', 'is', 'in',
+  },
+}
+def implicit_continuation(tok):
+  return tok.type in IMPLICIT_CONTINUATION and \
+         tok.string in IMPLICIT_CONTINUATION[tok.type]
 
 # TODO: cookie_re
 
@@ -59,6 +74,8 @@ class Lexer:
     self.line_start = self.pos
     self.line_num = 1
     self.set_line()
+    # Ignore initial blank/comment-only lines.
+    self.skip_blank_lines()
     # Like CoffeeScript but unlike Python, allow an overall indentation.
     # (Useful for copy/pasting portions of another file.)
     self.indents = [self.measure_indent()[0]]
@@ -76,9 +93,8 @@ class Lexer:
 
   def start_line(self):
     self.indent, self.pos = self.measure_indent()
-    # Ignore indentation if this is a blank or comment line
-    if self.pos == self.len or any(
-      rec.match(self.code, self.pos) for rec in [Newline, Comment]): return
+    if self.pos == self.len: #or NewlineOrComment.match(self.code, self.pos):
+      return
 
     indent = self.indents[-1]
     if self.indent > indent:
@@ -135,12 +151,14 @@ class Lexer:
         break
     else:
       if match := Newline.match(self.code, self.pos):
+        # Decide whether line should be automatically continued.
         prev = self.prev()
-        if prev and prev.type != token.NEWLINE:
-          self.token_from_match(token.NEWLINE, match)
-        else:
-          self.token_from_match(None, match)
-        self.start_line()
+        newline = prev and prev.type != token.NEWLINE and \
+                  not implicit_continuation(prev)
+        self.token_from_match(token.NEWLINE if newline else None, match)
+        # Ignore blank/comment-only lines after a newline.
+        self.skip_blank_lines()
+        if newline: self.start_line()
       elif match := Comment.match(self.code, self.pos):
         #self.token_from_match(token.COMMENT, match)
         self.token_from_match(None, match)
@@ -148,6 +166,12 @@ class Lexer:
         self.token_from_match(None, match)
       else:
         self.error('failed to parse token')
+
+  def skip_blank_lines(self):
+      '''Skip over any blank/comment-only lines,
+      in particular to ignore indentation.'''
+      while match := NewlineOrComment.match(self.code, self.pos):
+        self.token_from_match(None, match)
 
   def token_from_match(self, type, match):
     start, end = match.span()
