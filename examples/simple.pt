@@ -19,3 +19,8 @@
     pass
   loop
     pass
+
+  x = \ # comments allowed after continuation
+    'hello ' \ # this comment is between strings
+    'world' \
+    '!!!'

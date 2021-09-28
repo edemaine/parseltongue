@@ -15,6 +15,11 @@
 * `unless` shorthand for `if not`.
 * `until` shorthand for `while not`.
 * `loop` shorthand for `while True`.
+* Comments after `\` continuations:
+  ```py
+  string = \ # comment
+    'hello'
+  ```
 
 ## Usage
 

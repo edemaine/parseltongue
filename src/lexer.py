@@ -20,7 +20,10 @@ Token = TokenInfo = tokenize.TokenInfo
 compile = lambda expr: re.compile(expr, re.UNICODE)
 Comment = compile(tokenize.Comment)
 Whitespace = compile(tokenize.Whitespace)
-Newline = compile(r'\r?\n')
+Newline_src = r'\r?\n'
+Newline = compile(Newline_src)
+Continuation = compile(r'\\' + tokenize.Whitespace +
+  tokenize.maybe(tokenize.Comment) + Newline_src)
 Triple = compile(
   tokenize.StringPrefix + "'''" + tokenize.Single3 + '|' +
   tokenize.StringPrefix + '"""' + tokenize.Double3)
@@ -33,7 +36,6 @@ token_rec = [
 ]
 
 # TODO: cookie_re
-# TODO: Triple
 
 class ParselTongueLexerError(SyntaxError): pass
 
@@ -124,7 +126,6 @@ class Lexer:
     match = Whitespace.match(self.code, self.pos)
     start, end = match.span()
     self.pos += end - start
-    # Continuation
     # Match regular tokens
     #print(f'matching {self.filename}:{self.line_num}.{self.pos - self.line_start} {match.group()}|{repr(self.code[self.pos:self.pos+20])[1:-1]}')
     for type, rec in token_rec:
@@ -141,6 +142,8 @@ class Lexer:
         self.start_line()
       elif match := Comment.match(self.code, self.pos):
         #self.token_from_match(token.COMMENT, match)
+        self.token_from_match(None, match)
+      elif match := Continuation.match(self.code, self.pos):
         self.token_from_match(None, match)
       else:
         self.error('failed to parse token')

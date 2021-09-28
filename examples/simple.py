@@ -20,3 +20,4 @@ while not (x or y):
     pass
 while True:
     pass
+x = 'hello world!!!'
