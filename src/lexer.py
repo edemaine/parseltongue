@@ -38,9 +38,10 @@ token_rec = [
 
 IMPLICIT_CONTINUATION = {
   token.OP: {
-    ',', '+', '-', '*', '/', '|', '&', '<', '>', '=', '.', '%', '==', '!=',
-    '<=', '>=', '~', '^', '<<', '>>', '**', '+=', '-=', '/=', '%=', '&=',
-    '|=', '^=', '<<=', '>>=', '**=', '//', '//=', '@', '@=', ':=',
+    ',', '+', '-', '*', '/', '|', '&', '<', '>', '.', '%', '==', '!=',
+    '<=', '>=', '~', '^', '<<', '>>', '**', '//', '@',
+    '=', '+=', '-=', '/=', '%=', '&=', '|=', '^=', '<<=', '>>=', '**=',
+    '//=', '@=', ':=',
   },
   token.NAME: {
     'and', 'or', 'not', 'is', 'in',
@@ -49,6 +50,13 @@ IMPLICIT_CONTINUATION = {
 def implicit_continuation(tok):
   return tok.type in IMPLICIT_CONTINUATION and \
          tok.string in IMPLICIT_CONTINUATION[tok.type]
+
+nest_open_ops = {
+  '(': ')',
+  '[': ']',
+  '{': '}',
+}
+nest_close_ops = set(nest_open_ops.values())
 
 # TODO: cookie_re
 
@@ -79,6 +87,9 @@ class Lexer:
     # Like CoffeeScript but unlike Python, allow an overall indentation.
     # (Useful for copy/pasting portions of another file.)
     self.indents = [self.measure_indent()[0]]
+    # Currently open nesting tokens: INDENT, OP'(', OP'[', OP'{'.
+    # Like CoffeeScript's lexer @ends.
+    self.nests = []
     self.start_line()
     self.tokens = []
     self.tokenize()
@@ -99,21 +110,47 @@ class Lexer:
     indent = self.indents[-1]
     if self.indent > indent:
       self.indents.append(self.indent)
-      self.indent_token(token.INDENT)
+      tok = self.indent_token(token.INDENT)
+      tok.closing = lambda tok2: tok2.type == token.DEDENT
+      self.nests.append(tok)
     while self.indent < indent:
-      self.indents.pop()
-      self.indent_token(token.DEDENT)
-      if not self.indents:
-        self.error('dedent beyond global indent')
+      self.dedent()
       indent = self.indents[-1]
       if self.indent > indent:
         self.error(f'dedent to {self.indent} but expected {self.indents[-1]}')
 
-  def indent_token(self, type):
-    self.tokens.append(TokenInfo(type,
-      self.code[self.line_start:self.pos],
-      (self.line_num, 0), (self.line_num, self.pos - self.line_start),
-      self.line))
+  def indent_token(self, type, tok = None):
+    if tok is None:
+      tok = TokenInfo(type,
+        self.code[self.line_start:self.pos],
+        (self.line_num, 0), (self.line_num, self.pos - self.line_start),
+        self.line)
+    else:
+      tok = TokenInfo(type, tok.string, tok.start, tok.end, tok.line)
+    self.tokens.append(tok)
+    return tok
+
+  def dedent(self, tok = None):
+    self.indents.pop()
+    tok = self.indent_token(token.DEDENT, tok)
+    self.unnest(tok)
+    if not self.indents:
+      self.error('dedent beyond global indent')
+
+  def unnest(self, tok):
+    while True:
+      if not self.nests:
+        self.error(f"Extra closing {tok}")
+      nest = self.nests[-1]
+      if nest.closing(tok):
+        return self.nests.pop()
+      elif nest.type == token.INDENT:
+        # Implicitly close additional indentation when a bracket gets closed:
+        #   f((x) ->
+        #     x)
+        self.dedent(tok)
+      else:
+        self.error(f"{nest} closed by {tok}")
 
   def measure_indent(self):
     indent = 0
@@ -135,8 +172,7 @@ class Lexer:
     while self.pos < self.len:
       self.token()
     while len(self.indents) > 1:
-      self.indent_token(token.DEDENT)
-      self.indents.pop()
+      self.dedent()
 
   def token(self):
     # Strip leading whitespace
@@ -154,7 +190,7 @@ class Lexer:
         # Decide whether line should be automatically continued.
         prev = self.prev()
         newline = prev and prev.type != token.NEWLINE and \
-                  not implicit_continuation(prev)
+          not implicit_continuation(prev)
         self.token_from_match(token.NEWLINE if newline else None, match)
         # Ignore blank/comment-only lines after a newline.
         self.skip_blank_lines()
@@ -174,6 +210,7 @@ class Lexer:
         self.token_from_match(None, match)
 
   def token_from_match(self, type, match):
+    # Count line breaks spanned by match, and advance line numbers accordingly
     start, end = match.span()
     end_line_start = self.code.rfind('\n', start, end)
     if end_line_start < 0:
@@ -182,16 +219,31 @@ class Lexer:
     else:
       end_line_start += 1
       end_line_num = self.line_num + self.code.count('\n', start, end)
-    token = TokenInfo(type, match.group(),
+
+    # Create token for the match.
+    tok = TokenInfo(type, match.group(),
       (self.line_num, start - self.line_start),
       (end_line_num, end - self.line_start), self.line)
-    if type:
-      self.tokens.append(token)
+
+    # Update current line and position
     self.line_start = end_line_start
     self.line_num = end_line_num
     self.set_line()
     self.pos += end - start
-    return token
+
+    # Check for opening/closing nesting operators.
+    if type == token.OP:
+      if tok.string in nest_open_ops:
+        closing = nest_open_ops[tok.string]
+        tok.closing = lambda tok2: \
+          tok2.type == token.OP and tok2.string == closing
+        self.nests.append(tok)
+      elif tok.string in nest_close_ops:
+        self.unnest(tok)
+
+    if type:
+      self.tokens.append(tok)
+    return tok
 
   def prev(self):
     if self.tokens:
