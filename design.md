@@ -31,6 +31,8 @@
 * (?) Custom infix operators
 * (?) Argument initializers that run instead of get memoized
   (`:=`? or replace current behavior, and break Python compatibility)
+* Require `shadow` declaration (similar to `nonlocal`/`global`)
+  when shadowing variable from parent scope (perhaps as an option)
 * Minor helpful syntax
   * Block comments via `###` (incompatible with "Python is Parseltongue")
   * ✓Implicit continuation when ending line with operator
