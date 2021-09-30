@@ -22,7 +22,8 @@ Comment = compile(tokenize.Comment)
 Whitespace = compile(tokenize.Whitespace)
 Newline_src = r'\r?\n'
 Newline = compile(Newline_src)
-NewlineOrComment = compile(tokenize.group(Newline_src, tokenize.Comment))
+NewlineOrComment = compile(tokenize.Whitespace +
+  tokenize.group(Newline_src, tokenize.Comment))
 Continuation = compile(r'\\' + tokenize.Whitespace +
   tokenize.maybe(tokenize.Comment) + Newline_src)
 Triple = compile(
