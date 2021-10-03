@@ -1,27 +1,7 @@
 import ast, os, sys, traceback
 import lexer, parse
 
-def detect_newline(filename):
-  '''Detect newline character sequence in given filename by reading first line
-  '''
-  with open(filename, 'rb') as f:
-    line = f.readline()
-    for newline in [b'\r\n', b'\n', b'\r']:
-      if line.endswith(newline):
-        return newline.decode('ascii')
-  # No newline character => None tells Python to use OS default
-
-def copy_mode(old_filename, new_filename):
-  os.chmod(new_filename, os.stat(old_filename).st_mode)
-  try:
-    import win32security
-  except ImportError:
-    pass  # not Windows
-  else:
-    win32security.SetFileSecurity(new_filename,
-      win32security.DACL_SECURITY_INFORMATION,
-      win32security.GetFileSecurity(
-        old_filename, win32security.DACL_SECURITY_INFORMATION))
+import util
 
 def main():
   for pt_filename in sys.argv[1:]:
@@ -31,7 +11,7 @@ def main():
     else:
       py_filename = basename + '.py'
     print(pt_filename, '->', py_filename)
-    newline = detect_newline(pt_filename)
+    newline = util.detect_newline(pt_filename)
     pt_file = open(pt_filename, 'r')
     tokenizer = lexer.Tokenizer(pt_file, pt_filename)
     parser = parse.ParseltongueParser(tokenizer, filename = pt_filename)
@@ -51,6 +31,6 @@ def main():
     py_content = ast.unparse(parsed) + '\n'
     with open(py_filename, 'w', newline = newline) as py_file:
       py_file.write(py_content)
-    copy_mode(pt_filename, py_filename)
+    util.copy_mode(pt_filename, py_filename)
 
 if __name__ == '__main__': main()
