@@ -20,7 +20,7 @@ def main():
         except FileNotFoundError:
             pass
         if args.check:
-            print(pt_filename, 'vs', py_filename, end=' -- ')
+            print(pt_filename, 'vs', py_filename)
         else:
             print(pt_filename, '->', py_filename)
         newline = util.detect_newline(pt_filename)
@@ -38,10 +38,8 @@ def main():
         if args.check:
             with open(py_filename, 'r', newline=newline) as py_file:
                 if not py_file.read() == py_content:
-                    print('DIFFERENT')
+                    print(' -- DIFFERENT')
                     exitcode += 1
-                else:
-                    print('same')
         else:
             with open(py_filename, 'w', newline=newline) as py_file:
                 py_file.write(py_content)
