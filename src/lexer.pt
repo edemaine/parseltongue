@@ -40,23 +40,23 @@ token_rec = [
 IMPLICIT_CONTINUATION = {
   token.OP: {
     #',',
-    '+', '-', '*', '/', '|', '&', '<', '>', '.', '%', '==', '!=',
-    '<=', '>=', '~', '^', '<<', '>>', '**', '//', '@',
-    '=', '+=', '-=', '/=', '%=', '&=', '|=', '^=', '<<=', '>>=', '**=',
-    '//=', '@=', ':=',
+    '+', '-', '*', '/', '|', '&', '<', '>', '.', '%', '==', '!='
+    '<=', '>=', '~', '^', '<<', '>>', '**', '//', '@'
+    '=', '+=', '-=', '/=', '%=', '&=', '|=', '^=', '<<=', '>>=', '**='
+    '//=', '@=', ':='
   },
   token.NAME: {
-    'and', 'or', 'not', 'is', 'in',
+    'and', 'or', 'not', 'is', 'in'
   },
 }
 def implicit_continuation(tok):
-  return tok.type in IMPLICIT_CONTINUATION and \
+  return tok.type in IMPLICIT_CONTINUATION and
          tok.string in IMPLICIT_CONTINUATION[tok.type]
 
 nest_open_ops = {
-  '(': ')',
-  '[': ']',
-  '{': '}',
+  '(': ')'
+  '[': ']'
+  '{': '}'
 }
 nest_close_ops = set(nest_open_ops.values())
 
@@ -106,28 +106,28 @@ class Lexer:
 
   def start_line(self):
     self.indent, self.pos = self.measure_indent()
-    if self.pos == self.len: #or NewlineOrComment.match(self.code, self.pos):
+    if self.pos == self.len #or NewlineOrComment.match(self.code, self.pos)
       return
 
     indent = self.indents[-1]
-    if self.indent > indent:
+    if self.indent > indent
       self.indents.append(self.indent)
       tok = self.indent_token(token.INDENT)
       tok.closing = lambda tok2: tok2.type == token.DEDENT
       self.nests.append(tok)
-    while self.indent < indent:
+    while self.indent < indent
       self.dedent()
       indent = self.indents[-1]
-      if self.indent > indent:
+      if self.indent > indent
         self.error(f'dedent to {self.indent} but expected {self.indents[-1]}')
 
   def indent_token(self, type, tok = None):
-    if tok is None:
+    if tok is None
       tok = TokenInfo(type,
         self.code[self.line_start:self.pos],
         (self.line_num, 0), (self.line_num, self.pos - self.line_start),
         self.line)
-    else:
+    else
       tok = TokenInfo(type, tok.string, tok.start, tok.end, tok.line)
     self.tokens.append(tok)
     return tok
@@ -136,44 +136,44 @@ class Lexer:
     self.indents.pop()
     tok = self.indent_token(token.DEDENT, tok)
     self.unnest(tok)
-    if not self.indents:
+    if not self.indents
       self.error('dedent beyond global indent')
 
   def unnest(self, tok):
-    while True:
-      if not self.nests:
+    loop
+      if not self.nests
         self.error(f"Extra closing {tok}")
       nest = self.nests[-1]
-      if nest.closing(tok):
+      if nest.closing(tok)
         return self.nests.pop()
-      elif nest.type == token.INDENT:
+      elif nest.type == token.INDENT
         # Implicitly close additional indentation when a bracket gets closed:
         #   f((x) ->
         #     x)
         self.dedent(tok)
-      else:
+      else
         self.error(f"{nest} closed by {tok}")
 
   def measure_indent(self):
     indent = 0
     pos = self.pos
-    while pos < self.len:
+    while pos < self.len
       char = self.code[pos]
-      if char == ' ':
+      if char == ' '
         indent += 1
-      elif char == '\t':
+      elif char == '\t'
         indent = (indent//tabsize + 1) * tabsize
-      elif char == '\f':
+      elif char == '\f'
         indent = 0
-      else:
+      else
         break
       pos += 1
     return indent, pos
 
   def tokenize(self):
-    while self.pos < self.len:
+    while self.pos < self.len
       self.token()
-    while len(self.indents) > 1:
+    while len(self.indents) > 1
       self.dedent()
 
   def token(self):
@@ -184,41 +184,41 @@ class Lexer:
     # Match regular tokens
     #print(f'matching {self.filename}:{self.line_num}.{self.pos - self.line_start} {match.group()}|{repr(self.code[self.pos:self.pos+20])[1:-1]}')
     for type, rec in token_rec:
-      if match := rec.match(self.code, self.pos):
+      if match := rec.match(self.code, self.pos)
         self.token_from_match(type, match)
         break
-    else:
-      if match := Newline.match(self.code, self.pos):
+    else
+      if match := Newline.match(self.code, self.pos)
         # Decide whether line should be automatically continued.
         prev = self.prev()
-        newline = prev and prev.type != token.NEWLINE and \
+        newline = prev and prev.type != token.NEWLINE and
           not implicit_continuation(prev)
         self.token_from_match(token.NEWLINE if newline else None, match)
         # Ignore blank/comment-only lines after a newline.
         self.skip_blank_lines()
         if newline: self.start_line()
-      elif match := Comment.match(self.code, self.pos):
+      elif match := Comment.match(self.code, self.pos)
         #self.token_from_match(token.COMMENT, match)
         self.token_from_match(None, match)
-      elif match := Continuation.match(self.code, self.pos):
+      elif match := Continuation.match(self.code, self.pos)
         self.token_from_match(None, match)
-      else:
+      else
         self.error('failed to parse token')
 
   def skip_blank_lines(self):
       '''Skip over any blank/comment-only lines,
       in particular to ignore indentation.'''
-      while match := NewlineOrComment.match(self.code, self.pos):
+      while match := NewlineOrComment.match(self.code, self.pos)
         self.token_from_match(None, match)
 
   def token_from_match(self, type, match):
     # Count line breaks spanned by match, and advance line numbers accordingly
     start, end = match.span()
     end_line_start = self.code.rfind('\n', start, end)
-    if end_line_start < 0:
+    if end_line_start < 0
       end_line_start = self.line_start
       end_line_num = self.line_num
-    else:
+    else
       end_line_start += 1
       end_line_num = self.line_num + self.code.count('\n', start, end)
 
@@ -234,21 +234,21 @@ class Lexer:
     self.pos += end - start
 
     # Check for opening/closing nesting operators.
-    if type == token.OP:
-      if tok.string in nest_open_ops:
+    if type == token.OP
+      if tok.string in nest_open_ops
         closing = nest_open_ops[tok.string]
         tok.closing = lambda tok2: \
           tok2.type == token.OP and tok2.string == closing
         self.nests.append(tok)
-      elif tok.string in nest_close_ops:
+      elif tok.string in nest_close_ops
         self.unnest(tok)
 
-    if type:
+    if type
       self.tokens.append(tok)
     return tok
 
   def prev(self):
-    if self.tokens:
+    if self.tokens
       return self.tokens[-1]
 
   def error(self, msg):
@@ -263,7 +263,7 @@ class Lexer:
     line = None
     line_width = len(str(self.tokens[-1].start[0]))
     for token in self:
-      if line != token.start[0]:
+      if line != token.start[0]
         if line is not None: print()
         print(f'{token.start[0]:{line_width}}', end = '')
         line = token.end[0]
@@ -275,7 +275,7 @@ class Tokenizer(pegen.tokenizer.Tokenizer):
     def tokengen():
       lexer = Lexer(file, filename)
       yield from iter(lexer)
-      while True:
+      loop
         yield TokenInfo(token.ENDMARKER, '',
           (lexer.line_num, 0), (lexer.line_num, len(lexer.line)), lexer.line)
     super().__init__(tokengen(), path = filename)

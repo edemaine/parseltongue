@@ -17,18 +17,18 @@ def main():
   for pt_filename in args.filenames:
     basename, ext = os.path.splitext(pt_filename)
     py_filename = basename + '.py'
-    if args.output is not None:
+    if args.output is not None
       py_filename = os.path.join(args.output, os.path.basename(py_filename))
     try:
-      if pt_filename == py_filename or \
-         os.path.samefile(pt_filename, py_filename):
+      if pt_filename == py_filename or
+         os.path.samefile(pt_filename, py_filename)
         py_filename += '.py'
     except FileNotFoundError:
       pass
 
-    if args.check:
+    if args.check
       print(pt_filename, 'vs', py_filename, end = ' -- ')
-    else:
+    else
       print(pt_filename, '->', py_filename)
     newline = util.detect_newline(pt_filename)
     pt_file = open(pt_filename, 'r')
@@ -36,7 +36,7 @@ def main():
     parser = parse.ParseltongueParser(tokenizer, filename = pt_filename)
     parsed = parser.file()
     pt_file.close()
-    if parsed is None:
+    if parsed is None
       tok = tokenizer.diagnose()
       err = parser.make_syntax_error(
         f'Parseltongue parse error at {lexer.tok_name[tok.type]} token {repr(tok.string)}')
@@ -49,21 +49,21 @@ def main():
     #print(unparser._source)
     py_content = ast.unparse(parsed) + '\n'
 
-    if args.check:
+    if args.check
       with open(py_filename, 'r', newline = newline) as py_file:
-        if py_file.read() != py_content:
+        if py_file.read() != py_content
           print('DIFFERENT')
           exitcode += 1
-        else:
+        else
           print('same')
-    else:
+    else
       with open(py_filename, 'w', newline = newline) as py_file:
         py_file.write(py_content)
       util.copy_mode(pt_filename, py_filename)
 
-  if __name__ == '__main__':
+  if __name__ == '__main__'
     sys.exit(exitcode)
-  else:
+  else
     return exitcode
 
 if __name__ == '__main__': main()
