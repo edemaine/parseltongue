@@ -2,6 +2,14 @@
 
 ## Features So Far
 
+* List, tuple, dict, set literals and function arguments can use newlines
+  instead of commas (except for singleton tuples).
+  You can use up to one indentation, possible in the middle of the items,
+  to allow for things like:
+  ```py
+  [1, 2, 3
+   4, 5, 6]
+  ```
 * `if`, `elif`, `else`, `while` do not need colons after the condition,
   except when using one-line `if`, `elif`, `while`.
 

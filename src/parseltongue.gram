@@ -588,6 +588,9 @@ dotted_name[str]:
 # Common elements
 # ---------------
 
+separator: ',' [NEWLINE] | NEWLINE
+extra_separator: [','] [NEWLINE]
+
 colon_block[list] (memo):
     | ':' block
     | NEWLINE INDENT a=statements DEDENT { a }
@@ -1118,9 +1121,15 @@ star_expression (memo):
     | '*' a=bitwise_or { ast.Starred(value=a, ctx=Load, LOCATIONS) }
     | expression
 
-star_named_expressions:
-    | a=(',' NEWLINE? | NEWLINE).star_named_expression+ [','] [NEWLINE] { a }
-    | INDENT a=star_named_expressions DEDENT { a }
+star_named_expressions[list]:
+    | a=separator.star_named_expression+ extra_separator b=[INDENT star_named_expressions DEDENT] { a + (b or []) }
+    | INDENT a=separator.star_named_expression+ extra_separator DEDENT { a }
+
+star_named_expressions_with_separator[list]:
+    | a=star_named_expression ',' { [a] + (b or []) }
+    | a=star_named_expression separator b=star_named_expressions { [a] + b }
+    | INDENT a=star_named_expression ',' DEDENT { [a] }
+    | INDENT a=star_named_expression separator b=separator.star_named_expressions+ extra_separator DEDENT { [a] + b }
 
 star_named_expression:
     | '*' a=bitwise_or { ast.Starred(value=a, ctx=Load, LOCATIONS) }
@@ -1258,7 +1267,7 @@ await_primary (memo):
 primary:
     | a=primary '.' b=NAME { ast.Attribute(value=a, attr=b.string, ctx=Load, LOCATIONS) }
     | a=primary b=genexp { ast.Call(func=a, args=[b], keywords=[], LOCATIONS) }
-    | a=primary '(' NEWLINE? b=[arguments] ')' {
+    | a=primary '(' [NEWLINE] b=[arguments] ')' {
         ast.Call(
             func=a,
             args=b[0] if b else [],
@@ -1405,28 +1414,28 @@ lambda_param[ast.arg]: a=NAME {
 strings[ast.Str] (memo): a=STRING+ { self.generate_ast_for_string(a) }
 
 list[ast.List]:
-    | '[' NEWLINE? a=[star_named_expressions] ']' { ast.List(elts=a or [], ctx=Load, LOCATIONS) }
+    | '[' [NEWLINE] a=[star_named_expressions] ']' { ast.List(elts=a or [], ctx=Load, LOCATIONS) }
 
 tuple[ast.Tuple]:
-    | '(' a=[y=star_named_expression ',' z=[star_named_expressions] { [y] + (z or []) } ] ')' {
+    | '(' [NEWLINE] a=[star_named_expressions_with_separator] ')' {
         ast.Tuple(elts=a or [], ctx=Load, LOCATIONS)
      }
 
 set[ast.Set]:
-    | '{' NEWLINE? a=star_named_expressions '}' { ast.Set(elts=a, LOCATIONS) }
+    | '{' [NEWLINE] a=star_named_expressions '}' { ast.Set(elts=a, LOCATIONS) }
 
 # Dicts
 # -----
 
 dict[ast.Dict]:
-    | '{' NEWLINE? a=[double_starred_kvpairs] '}' {
+    | '{' [NEWLINE] a=[double_starred_kvpairs] '}' {
         ast.Dict(keys=[kv[0] for kv in (a or [])], values=[kv[1] for kv in (a or [])], LOCATIONS)
      }
-    | '{' invalid_double_starred_kvpairs '}'
+    | '{' [NEWLINE] invalid_double_starred_kvpairs '}'
 
 double_starred_kvpairs[list]:
-    | a=(',' NEWLINE? | NEWLINE).double_starred_kvpair+ [','] [NEWLINE] { a }
-    | INDENT a=double_starred_kvpairs DEDENT { a }
+    | a=separator.double_starred_kvpair+ extra_separator b=[INDENT double_starred_kvpairs DEDENT] { a + (b or []) }
+    | INDENT a=separator.double_starred_kvpair+ extra_separator DEDENT { a }
 
 double_starred_kvpair:
     | '**' a=bitwise_or { (None, a) }
@@ -1474,11 +1483,11 @@ dictcomp[ast.DictComp]:
 # =======================
 
 arguments[Tuple[list, list]] (memo):
-    | a=args [','] [NEWLINE] &')' { a }
+    | a=args extra_separator b=[INDENT x=args DEDENT { x }] &')' { a if b is None else (a[0] + b[0], a[1] + b[1]) }
     | invalid_arguments
 
 args[Tuple[list, list]]:
-    | a=(',' [NEWLINE] | NEWLINE).(starred_expression | ( assignment_expression | expression !':=') !'=')+ b=[',' k=kwargs {k}] {
+    | a=separator.(starred_expression | ( assignment_expression | expression !':=') !'=')+ b=[separator k=kwargs {k}] {
         (a + ([e for e in b if isinstance(e, ast.Starred)] if b else []),
          ([e for e in b if not isinstance(e, ast.Starred)] if b else [])
         )
@@ -1490,9 +1499,9 @@ args[Tuple[list, list]]:
     | INDENT a=args DEDENT { a }
 
 kwargs[list]:
-    | a=(',' [NEWLINE] | NEWLINE).kwarg_or_starred+ ',' b=','.kwarg_or_double_starred+ { a + b }
-    | (',' [NEWLINE] | NEWLINE).kwarg_or_starred+
-    | (',' [NEWLINE] | NEWLINE).kwarg_or_double_starred+
+    | a=separator.kwarg_or_starred+ separator b=','.kwarg_or_double_starred+ { a + b }
+    | separator.kwarg_or_starred+
+    | separator.kwarg_or_double_starred+
     | INDENT a=kwargs DEDENT { a }
 
 starred_expression:
@@ -1960,7 +1969,8 @@ invalid_class_def_raw[NoReturn]:
      }
 
 invalid_double_starred_kvpairs[None]:
-    | (',' NEWLINE? | NEWLINE).double_starred_kvpair+ (',' NEWLINE? | NEWLINE) invalid_kvpair
+    | (double_starred_kvpair separator)+ extra_separator [INDENT (double_starred_kvpair separator)*] invalid_kvpair
+    | INDENT (double_starred_kvpair separator)+ invalid_kvpair
     | expression ':' a='*' bitwise_or {
         self.store_syntax_error_starting_from("cannot use a starred expression in a dictionary value", a)
      }

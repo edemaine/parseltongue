@@ -10,13 +10,13 @@ def main():
       py_filename = basename + '.py'
     print(pt_filename, '->', py_filename)
     pt_file = open(pt_filename, 'r')
-    parser = parse.ParseltongueParser(
-      lexer.Tokenizer(pt_file, pt_filename),
-      filename = pt_filename,
-    )
+    tokenizer = lexer.Tokenizer(pt_file, pt_filename)
+    parser = parse.ParseltongueParser(tokenizer, filename = pt_filename)
     parsed = parser.file()
     if parsed is None:
-      err = parser.make_syntax_error('Parseltongue parse error')
+      tok = tokenizer.diagnose()
+      err = parser.make_syntax_error(
+        f'Parseltongue parse error at {lexer.tok_name[tok.type]} token {repr(tok.string)}')
       traceback.print_exception(err.__class__, err, None, file = sys.stdout)
       continue
     # For debugging:
