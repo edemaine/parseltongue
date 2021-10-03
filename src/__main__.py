@@ -1,6 +1,16 @@
 import ast, os, sys, traceback
 import lexer, parse
 
+def detect_newline(filename):
+  '''Detect newline character sequence in given filename by reading first line
+  '''
+  with open(filename, 'rb') as f:
+    line = f.readline()
+    for newline in [b'\r\n', b'\n', b'\r']:
+      if line.endswith(newline):
+        return newline.decode('ascii')
+  # No newline character => None tells Python to use OS default
+
 def main():
   for pt_filename in sys.argv[1:]:
     basename, ext = os.path.splitext(pt_filename)
@@ -9,10 +19,12 @@ def main():
     else:
       py_filename = basename + '.py'
     print(pt_filename, '->', py_filename)
+    newline = detect_newline(pt_filename)
     pt_file = open(pt_filename, 'r')
     tokenizer = lexer.Tokenizer(pt_file, pt_filename)
     parser = parse.ParseltongueParser(tokenizer, filename = pt_filename)
     parsed = parser.file()
+    pt_file.close()
     if parsed is None:
       tok = tokenizer.diagnose()
       err = parser.make_syntax_error(
@@ -25,7 +37,7 @@ def main():
     #unparser.traverse(parsed)
     #print(unparser._source)
     py_content = ast.unparse(parsed) + '\n'
-    with open(py_filename, 'w') as py_file:
+    with open(py_filename, 'w', newline = newline) as py_file:
       py_file.write(py_content)
 
 if __name__ == '__main__': main()
