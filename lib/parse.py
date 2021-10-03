@@ -6463,7 +6463,7 @@ class ParseltongueParser(Parser):
 
     @memoize
     def invalid_for_stmt(self) -> Optional[NoReturn]:
-        # invalid_for_stmt: 'async'? 'for' star_targets 'in' star_expressions ':' NEWLINE !INDENT
+        # invalid_for_stmt: 'async'? 'for' star_targets 'in' star_expressions ':'? NEWLINE !INDENT
         mark = self._mark()
         if (
             (opt := self.expect('async'),)
@@ -6476,7 +6476,7 @@ class ParseltongueParser(Parser):
             and
             (star_expressions := self.star_expressions())
             and
-            (literal_1 := self.expect(':'))
+            (opt_1 := self.expect(':'),)
             and
             (_newline := self.expect('NEWLINE'))
             and

@@ -796,13 +796,13 @@ loop_stmt[ast.While]:
 
 for_stmt[Union[ast.For, ast.AsyncFor]]:
     | invalid_for_stmt
-    | 'for' t=star_targets 'in' ~ ex=star_expressions &&':' tc=[TYPE_COMMENT] b=block el=[else_block] {
-        ast.For(target=t, iter=ex, body=b, orelse=el or [], type_comment=tc, LOCATIONS) }
-    | 'async' 'for' t=star_targets 'in' ~ ex=star_expressions ':' tc=[TYPE_COMMENT] b=block el=[else_block] {
+    | 'for' t=star_targets 'in' ~ ex=star_expressions b=colon_type_comment_block el=[else_block] {
+        ast.For(target=t, iter=ex, body=b[1], orelse=el or [], type_comment=b[0], LOCATIONS) }
+    | 'async' 'for' t=star_targets 'in' ~ ex=star_expressions b=colon_type_comment_block el=[else_block] {
         self.check_version(
             (3, 5),
             "Async for loops are",
-            ast.AsyncFor(target=t, iter=ex, body=b, orelse=el or [], type_comment=tc, LOCATIONS)) }
+            ast.AsyncFor(target=t, iter=ex, body=b[1], orelse=el or [], type_comment=b[0], LOCATIONS)) }
     | invalid_for_target
 
 # With statement
@@ -1953,7 +1953,7 @@ invalid_loop_stmt[NoReturn]:
         )
      }
 invalid_for_stmt[NoReturn]:
-    | ['async'] a='for' star_targets 'in' star_expressions ':' NEWLINE !INDENT {
+    | ['async'] a='for' star_targets 'in' star_expressions ':'? NEWLINE !INDENT {
         self.raise_indentation_error(
             f"expected an indented block after 'for' statement on line {a.start[0]}"
         )

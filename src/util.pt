@@ -5,7 +5,7 @@ def detect_newline(filename):
   '''
   with open(filename, 'rb') as f
     line = f.readline()
-    for newline in [b'\r\n', b'\n', b'\r']:
+    for newline in [b'\r\n', b'\n', b'\r']
       if line.endswith(newline)
         return newline.decode('ascii')
   # No newline character => None tells Python to use OS default

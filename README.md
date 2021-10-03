@@ -50,12 +50,12 @@ level in, to allow for things like:
 
 ### Optional Colons
 
-`if`, `elif`, `else`, `while`, `with`, `try`, `except`, and `finally`
+`if`, `elif`, `else`, `while`, `for`, `with`, `try`, `except`, and `finally`
 generally do not need colons after the condition.
-The exception is that the one-line forms of `if`, `elif`, `while`, `with`,
-and `except` need a colon to separate the condition from the body.
+The exception is that the one-line forms of `if`, `elif`, `while`, `for`,
+`with`, and `except` need a colon to separate the condition from the body.
 But `else`, `try`, and `finally` do not need a colon even in their
-one-line forms.
+one-line forms (as they lack a condition).
 
 ```py
 if x > 10
@@ -111,8 +111,8 @@ string = 'hello' \ # comment
 
 ## Planned Features / Ideas
 
-* [x] Colon optional after `if`, `elif`, `else`, `while`, `with`, `try`, `except`, `finally`
-* [ ] Colon optional after `for`, etc.
+* [x] Colon optional after `if`, `elif`, `else`, `while`, `for`, `with`, `try`, `except`, `finally`
+* [ ] Colon optional after `match`, etc.
 * [ ] Multi-line lambdas via arrow functions
   * (?) Implicit return (but `def` remains as is)
 * Most statements become expressions
