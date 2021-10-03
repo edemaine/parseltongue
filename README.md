@@ -165,7 +165,8 @@ To get a development environment running, follow these steps:
 3. `poetry install`
 -->
 
-To build Parseltongue, run `python3.9 make.py`.
+To build Parseltongue, run `python3.9 make.py`
+(or `make` if you have `make` installed).
 This transpiles the source code in `src` (mostly written in Parseltongue)
 into Python code in `lib` (using the latter).
 If you accidentally trash the transpiler, use `git checkout lib`
