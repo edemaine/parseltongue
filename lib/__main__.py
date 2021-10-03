@@ -4,9 +4,11 @@ import util
 argparser = argparse.ArgumentParser('Parseltongue transpiler')
 argparser.add_argument('filenames', metavar='file.pt', nargs='+', help='Parseltongue source files')
 argparser.add_argument('-o', '--output', dest='output', help='destination directory for Python output')
+argparser.add_argument('-c', '--check', dest='check', action='store_true', help="check for changes, don't modify files")
 
 def main():
     args = argparser.parse_args()
+    exitcode = 0
     for pt_filename in args.filenames:
         (basename, ext) = os.path.splitext(pt_filename)
         py_filename = basename + '.py'
@@ -17,7 +19,10 @@ def main():
                 py_filename += '.py'
         except FileNotFoundError:
             pass
-        print(pt_filename, '->', py_filename)
+        if args.check:
+            print(pt_filename, 'vs', py_filename, end=' -- ')
+        else:
+            print(pt_filename, '->', py_filename)
         newline = util.detect_newline(pt_filename)
         pt_file = open(pt_filename, 'r')
         tokenizer = lexer.Tokenizer(pt_file, pt_filename)
@@ -30,8 +35,20 @@ def main():
             traceback.print_exception(err.__class__, err, None, file=sys.stdout)
             continue
         py_content = ast.unparse(parsed) + '\n'
-        with open(py_filename, 'w', newline=newline) as py_file:
-            py_file.write(py_content)
-        util.copy_mode(pt_filename, py_filename)
+        if args.check:
+            with open(py_filename, 'r', newline=newline) as py_file:
+                if py_file.read() != py_content:
+                    print('DIFFERENT')
+                    exitcode += 1
+                else:
+                    print('same')
+        else:
+            with open(py_filename, 'w', newline=newline) as py_file:
+                py_file.write(py_content)
+            util.copy_mode(pt_filename, py_filename)
+    if __name__ == '__main__':
+        sys.exit(exitcode)
+    else:
+        return exitcode
 if __name__ == '__main__':
     main()

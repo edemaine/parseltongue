@@ -1,6 +1,6 @@
 #!/usr/bin/env python3.9
 
-import glob, os, shutil, subprocess, sys
+import glob, importlib, os, shutil, subprocess, sys
 
 #PYTHON = 'poetry run python'
 PYTHON = 'python3.9'
@@ -58,7 +58,7 @@ class new_argv:
 def run_python_main(main, argv):
   print('\t' + ' '.join(argv))
   with new_argv(argv):
-    main()
+    return main()
 
 def make_grammar():
   if need_build(GRAMMAR_OUTPUT, GRAMMAR_INPUT):
@@ -68,18 +68,29 @@ def make_grammar():
   for filename in PEGEN_COPY:
     copy(os.path.join(PEGEN_PATH, 'pegen', filename), PEGEN_COPY_DEST)
 
-def make_transpile():
+def make_transpile(check = False):
   # Import now in case parser changed
   sys.path.insert(0, ROOT_DIR)
   import lib.__main__ as parseltongue
+  importlib.reload(parseltongue)
 
   mkdir(BUILD_DIR)
-  run_python_main(parseltongue.main,
+  return run_python_main(parseltongue.main,
     ['parseltongue', '-o', BUILD_DIR] +
+    (['--check'] if check else []) +
     glob.glob(os.path.join(SRC_DIR, '*.pt')))
+
+iterations = 5
+def make_transpile_loop():
+  for count in range(iterations):
+    make_transpile()
+    if make_transpile(check = True) == 0:
+      break
+  else:
+    print('FAILED TO CONVERGE AFTER {iterations} ITERATIONS')
 
 def make():
   make_grammar()
-  make_transpile()
+  make_transpile_loop()
 
 if __name__ == '__main__': make()
