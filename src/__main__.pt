@@ -41,6 +41,7 @@ def main()
       err = parser.make_syntax_error(
         f'Parseltongue parse error at {lexer.tok_name[tok.type]} token {repr(tok.string)}')
       traceback.print_exception(err.__class__, err, None, file = sys.stdout)
+      exitcode += 1
       continue
     # For debugging:
     #unparser = ast._Unparser()

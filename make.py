@@ -80,7 +80,7 @@ def make_transpile(check = False):
         reload.append((module, path))
   if (parseltongue, '__main__.py') not in reload:
     reload.append((parseltongue, '__main__.py'))
-  print('Reloading modules', ', '.join(path for module, path in reload))
+  print('[reloading modules ', ', '.join(path for module, path in reload), ']', sep = '')
   for module, path in reload:
     importlib.reload(module)
 
@@ -93,11 +93,13 @@ def make_transpile(check = False):
 iterations = 5
 def make_transpile_loop():
   for count in range(iterations):
-    make_transpile()
-    if make_transpile(check = True) == 0:
-      break
+    if make_transpile():
+      print('TRANSPILATION ERROR')
+      return 1
+    if make_transpile(check = True) == 0: break
   else:
-    print('FAILED TO CONVERGE AFTER {iterations} ITERATIONS')
+    print('TRANSPILATION FAILED TO CONVERGE AFTER {iterations} ITERATIONS')
+    return 1
 
 def make():
   make_grammar()

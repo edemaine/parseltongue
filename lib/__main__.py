@@ -33,6 +33,7 @@ def main():
             tok = tokenizer.diagnose()
             err = parser.make_syntax_error(f'Parseltongue parse error at {lexer.tok_name[tok.type]} token {repr(tok.string)}')
             traceback.print_exception(err.__class__, err, None, file=sys.stdout)
+            exitcode += 1
             continue
         py_content = ast.unparse(parsed) + '\n'
         if args.check:
