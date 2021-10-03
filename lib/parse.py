@@ -2033,7 +2033,7 @@ class ParseltongueParser(Parser):
 
     @memoize
     def for_stmt(self) -> Optional[Union [ast . For , ast . AsyncFor]]:
-        # for_stmt: invalid_for_stmt | 'for' star_targets 'in' ~ star_expressions &&':' TYPE_COMMENT? block else_block? | 'async' 'for' star_targets 'in' ~ star_expressions ':' TYPE_COMMENT? block else_block? | invalid_for_target
+        # for_stmt: invalid_for_stmt | 'for' star_targets 'in' ~ star_expressions colon_type_comment_block else_block? | 'async' 'for' star_targets 'in' ~ star_expressions colon_type_comment_block else_block? | invalid_for_target
         mark = self._mark()
         tok = self._tokenizer.peek()
         start_lineno, start_col_offset = tok.start
@@ -2054,17 +2054,13 @@ class ParseltongueParser(Parser):
             and
             (ex := self.star_expressions())
             and
-            (forced := self.expect_forced(self.expect(':'), "':'"))
-            and
-            (tc := self.type_comment(),)
-            and
-            (b := self.block())
+            (b := self.colon_type_comment_block())
             and
             (el := self.else_block(),)
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . For ( target = t , iter = ex , body = b , orelse = el or [] , type_comment = tc , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
+            return ast . For ( target = t , iter = ex , body = b [1] , orelse = el or [] , type_comment = b [0] , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset )
         self._reset(mark)
         if cut: return None
         cut = False
@@ -2081,17 +2077,13 @@ class ParseltongueParser(Parser):
             and
             (ex := self.star_expressions())
             and
-            (literal_3 := self.expect(':'))
-            and
-            (tc := self.type_comment(),)
-            and
-            (b := self.block())
+            (b := self.colon_type_comment_block())
             and
             (el := self.else_block(),)
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return self . check_version ( ( 3 , 5 ) , "Async for loops are" , ast . AsyncFor ( target = t , iter = ex , body = b , orelse = el or [] , type_comment = tc , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset ) )
+            return self . check_version ( ( 3 , 5 ) , "Async for loops are" , ast . AsyncFor ( target = t , iter = ex , body = b [1] , orelse = el or [] , type_comment = b [0] , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset ) )
         self._reset(mark)
         if cut: return None
         if (

@@ -37,7 +37,7 @@ def main():
         py_content = ast.unparse(parsed) + '\n'
         if args.check:
             with open(py_filename, 'r', newline=newline) as py_file:
-                if py_file.read() != py_content:
+                if not py_file.read() == py_content:
                     print('DIFFERENT')
                     exitcode += 1
                 else:

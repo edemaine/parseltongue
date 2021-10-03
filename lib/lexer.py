@@ -198,7 +198,7 @@ class Lexer:
         line = None
         line_width = len(str(self.tokens[-1].start[0]))
         for token in self:
-            if line != token.start[0]:
+            if not line == token.start[0]:
                 if line is not None:
                     print()
                 print(f'{token.start[0]:{line_width}}', end='')

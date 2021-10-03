@@ -136,12 +136,12 @@ class Lexer:
     self.indents.pop()
     tok = self.indent_token(token.DEDENT, tok)
     self.unnest(tok)
-    if not self.indents
+    unless self.indents
       self.error('dedent beyond global indent')
 
   def unnest(self, tok):
     loop
-      if not self.nests
+      unless self.nests
         self.error(f"Extra closing {tok}")
       nest = self.nests[-1]
       if nest.closing(tok)
@@ -263,7 +263,7 @@ class Lexer:
     line = None
     line_width = len(str(self.tokens[-1].start[0]))
     for token in self:
-      if line != token.start[0]
+      unless line == token.start[0]
         if line is not None: print()
         print(f'{token.start[0]:{line_width}}', end = '')
         line = token.end[0]
