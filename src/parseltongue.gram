@@ -594,6 +594,9 @@ extra_separator: [','] [NEWLINE]
 colon_block[list] (memo):
     | ':' block
     | NEWLINE INDENT a=statements DEDENT { a }
+colon_type_comment_block[list] (memo):
+    | ':' a=[TYPE_COMMENT] b=block { (a, b) }
+    | a=[TYPE_COMMENT] NEWLINE INDENT b=statements DEDENT { (a, b) }
 
 block[list] (memo):
     | NEWLINE INDENT a=statements DEDENT { a }
@@ -807,34 +810,34 @@ for_stmt[Union[ast.For, ast.AsyncFor]]:
 
 with_stmt[Union[ast.With, ast.AsyncWith]]:
     | invalid_with_stmt_indent
-    | 'with' '(' a=','.with_item+ ','? ')' ':' b=block {
+    | 'with' '(' a=','.with_item+ ','? ')' b=colon_block {
         self.check_version(
            (3, 9),
            "Parenthesized with items",
             ast.With(items=a, body=b, LOCATIONS)
         )
      }
-    | 'with' a=','.with_item+ ':' tc=[TYPE_COMMENT] b=block {
-        ast.With(items=a, body=b, type_comment=tc, LOCATIONS)
+    | 'with' a=','.with_item+ b=colon_type_comment_block {
+        ast.With(items=a, body=b[1], type_comment=b[0], LOCATIONS)
      }
-    | 'async' 'with' '(' a=','.with_item+ ','? ')' ':' b=block {
+    | 'async' 'with' '(' a=','.with_item+ ','? ')' b=colon_block {
        self.check_version(
            (3, 9),
            "Parenthesized with items",
            ast.AsyncWith(items=a, body=b, LOCATIONS)
         )
      }
-    | 'async' 'with' a=','.with_item+ ':' tc=[TYPE_COMMENT] b=block {
+    | 'async' 'with' a=','.with_item+ b=colon_type_comment_block {
        self.check_version(
            (3, 5),
            "Async with statements are",
-           ast.AsyncWith(items=a, body=b, type_comment=tc, LOCATIONS)
+           ast.AsyncWith(items=a, body=b[1], type_comment=b[0], LOCATIONS)
         )
      }
-    | invalid_with_stmt
+    #| invalid_with_stmt
 
 with_item[ast.withitem]:
-    | e=expression 'as' t=star_target &(',' | ')' | ':') {
+    | e=expression 'as' t=star_target &(',' | ')' | ':' | NEWLINE) {
         ast.withitem(context_expr=e, optional_vars=t)
      }
     | invalid_with_item
@@ -1815,16 +1818,16 @@ invalid_import_from_targets[NoReturn]:
         self.raise_syntax_error("trailing comma not allowed without surrounding parentheses")
      }
 
-invalid_with_stmt[None]:
-    | ['async'] 'with' ','.(expression ['as' star_target])+ &&':' { UNREACHABLE }
-    | ['async'] 'with' '(' ','.(expressions ['as' star_target])+ ','? ')' &&':' { UNREACHABLE }
+#invalid_with_stmt[None]:
+#    | ['async'] 'with' ','.(expression ['as' star_target])+ &&':' { UNREACHABLE }
+#    | ['async'] 'with' '(' ','.(expressions ['as' star_target])+ ','? ')' &&':' { UNREACHABLE }
 invalid_with_stmt_indent[NoReturn]:
-    | ['async'] a='with' ','.(expression ['as' star_target])+ ':' NEWLINE !INDENT {
+    | ['async'] a='with' ','.(expression ['as' star_target])+ [':'] NEWLINE !INDENT {
         self.raise_indentation_error(
             f"expected an indented block after 'with' statement on line {a.start[0]}"
         )
      }
-    | ['async'] a='with' '(' ','.(expressions ['as' star_target])+ ','? ')' ':' NEWLINE !INDENT {
+    | ['async'] a='with' '(' ','.(expressions ['as' star_target])+ ','? ')' [':'] NEWLINE !INDENT {
         self.raise_indentation_error(
             f"expected an indented block after 'with' statement on line {a.start[0]}"
         )

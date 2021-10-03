@@ -50,8 +50,9 @@ level in, to allow for things like:
 
 ### Optional Colons
 
-`if`, `elif`, `else`, `while` generally do not need colons after the condition.
-The exception is that one-line `if`, `elif`, and `while` need a colon
+`if`, `elif`, `else`, `while`, and `with`
+generally do not need colons after the condition.
+The exception is that one-line `if`, `elif`, `while`, and `with` need a colon
 to separate the condition from the body.  (But one-line `else` does not.)
 
 ```py
@@ -105,7 +106,7 @@ string = 'hello' \ # comment
 
 ## Planned Features / Ideas
 
-* [x] Colon optional after `if`, `elif`, `else`, `while`,
+* [x] Colon optional after `if`, `elif`, `else`, `while`, `with`
 * [ ] Colon optional after `for`, `try`, `except`, `finally`, etc.
 * [ ] Multi-line lambdas via arrow functions
   * (?) Implicit return (but `def` remains as is)

@@ -3,7 +3,7 @@ import os
 def detect_newline(filename):
   '''Detect newline character sequence in given filename by reading first line
   '''
-  with open(filename, 'rb') as f:
+  with open(filename, 'rb') as f
     line = f.readline()
     for newline in [b'\r\n', b'\n', b'\r']:
       if line.endswith(newline)

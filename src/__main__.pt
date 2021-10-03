@@ -50,14 +50,14 @@ def main():
     py_content = ast.unparse(parsed) + '\n'
 
     if args.check
-      with open(py_filename, 'r', newline = newline) as py_file:
+      with open(py_filename, 'r', newline = newline) as py_file
         if py_file.read() != py_content
           print('DIFFERENT')
           exitcode += 1
         else
           print('same')
     else
-      with open(py_filename, 'w', newline = newline) as py_file:
+      with open(py_filename, 'w', newline = newline) as py_file
         py_file.write(py_content)
       util.copy_mode(pt_filename, py_filename)
 
