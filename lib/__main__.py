@@ -5,8 +5,12 @@ argparser = argparse.ArgumentParser('parseltongue')
 argparser.add_argument('filenames', metavar='file.pt', nargs='+', help='Parseltongue source files')
 argparser.add_argument('-o', '--output', dest='output', help='destination directory for Python output')
 argparser.add_argument('-c', '--check', dest='check', action='store_true', help="check for changes, don't modify files")
+argparser.add_argument('-t', '--tokens', dest='lex', action='store_true', help="lex into tokens, don't transpile")
 
 def main():
+    if '-t' in sys.argv or '--tokens' in sys.argv:
+        sys.argv = [arg for arg in sys.argv if arg not in ['-t', '--tokens']]
+        return lexer.main()
     args = argparser.parse_args()
     exitcode = 0
     for pt_filename in args.filenames:
