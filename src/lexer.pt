@@ -49,7 +49,7 @@ IMPLICIT_CONTINUATION = {
     'and', 'or', 'not', 'is', 'in'
   },
 }
-def implicit_continuation(tok):
+def implicit_continuation(tok)
   return tok.type in IMPLICIT_CONTINUATION and
          tok.string in IMPLICIT_CONTINUATION[tok.type]
 
@@ -75,7 +75,7 @@ class Lexer:
   indents: list[int]  # indentation levels we're nested within
   tokens: list[TokenInfo]  # output token list
 
-  def __init__(self, code, filename = ''):
+  def __init__(self, code, filename = '')
     self.filename = filename
     if hasattr(code, 'read'): code = code.read()
     self.code = code
@@ -96,15 +96,15 @@ class Lexer:
     self.tokens = []
     self.tokenize()
 
-  def __iter__(self):
+  def __iter__(self)
     return iter(self.tokens)
 
-  def set_line(self):
+  def set_line(self)
     end_of_line = self.code.find('\n', self.line_start)
     if end_of_line < 0: end_of_line = self.len
     self.line = self.code[self.line_start:end_of_line]
 
-  def start_line(self):
+  def start_line(self)
     self.indent, self.pos = self.measure_indent()
     if self.pos == self.len #or NewlineOrComment.match(self.code, self.pos)
       return
@@ -121,7 +121,7 @@ class Lexer:
       if self.indent > indent
         self.error(f'dedent to {self.indent} but expected {self.indents[-1]}')
 
-  def indent_token(self, type, tok = None):
+  def indent_token(self, type, tok = None)
     if tok is None
       tok = TokenInfo(type,
         self.code[self.line_start:self.pos],
@@ -132,14 +132,14 @@ class Lexer:
     self.tokens.append(tok)
     return tok
 
-  def dedent(self, tok = None):
+  def dedent(self, tok = None)
     self.indents.pop()
     tok = self.indent_token(token.DEDENT, tok)
     self.unnest(tok)
     unless self.indents
       self.error('dedent beyond global indent')
 
-  def unnest(self, tok):
+  def unnest(self, tok)
     loop
       unless self.nests
         self.error(f"Extra closing {tok}")
@@ -154,7 +154,7 @@ class Lexer:
       else
         self.error(f"{nest} closed by {tok}")
 
-  def measure_indent(self):
+  def measure_indent(self)
     indent = 0
     pos = self.pos
     while pos < self.len
@@ -170,13 +170,13 @@ class Lexer:
       pos += 1
     return indent, pos
 
-  def tokenize(self):
+  def tokenize(self)
     while self.pos < self.len
       self.token()
     while len(self.indents) > 1
       self.dedent()
 
-  def token(self):
+  def token(self)
     # Strip leading whitespace
     match = Whitespace.match(self.code, self.pos)
     start, end = match.span()
@@ -205,13 +205,13 @@ class Lexer:
       else
         self.error('failed to parse token')
 
-  def skip_blank_lines(self):
+  def skip_blank_lines(self)
       '''Skip over any blank/comment-only lines,
       in particular to ignore indentation.'''
       while match := NewlineOrComment.match(self.code, self.pos)
         self.token_from_match(None, match)
 
-  def token_from_match(self, type, match):
+  def token_from_match(self, type, match)
     # Count line breaks spanned by match, and advance line numbers accordingly
     start, end = match.span()
     end_line_start = self.code.rfind('\n', start, end)
@@ -247,11 +247,11 @@ class Lexer:
       self.tokens.append(tok)
     return tok
 
-  def prev(self):
+  def prev(self)
     if self.tokens
       return self.tokens[-1]
 
-  def error(self, msg):
+  def error(self, msg)
     self.dump()
     raise ParselTongueLexerError('\n'.join([
       f'{self.filename}:{self.line_num}.{self.pos - self.line_start + 1} - {msg}',
@@ -259,7 +259,7 @@ class Lexer:
       ' ' * (self.pos - self.line_start) + '^'
     ]))
 
-  def dump(self):
+  def dump(self)
     line = None
     line_width = len(str(self.tokens[-1].start[0]))
     for token in self
@@ -271,8 +271,8 @@ class Lexer:
     print()
 
 class Tokenizer(pegen.tokenizer.Tokenizer):
-  def __init__(self, file, filename):
-    def tokengen():
+  def __init__(self, file, filename)
+    def tokengen()
       lexer = Lexer(file, filename)
       yield from iter(lexer)
       loop
@@ -280,7 +280,7 @@ class Tokenizer(pegen.tokenizer.Tokenizer):
           (lexer.line_num, 0), (lexer.line_num, len(lexer.line)), lexer.line)
     super().__init__(tokengen(), path = filename)
 
-def main():
+def main()
   import sys
   for filename in sys.argv[1:]
     print(f'# {filename}')

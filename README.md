@@ -50,10 +50,10 @@ level in, to allow for things like:
 
 ### Optional Colons
 
-`if`, `elif`, `else`, `while`, `for`, `with`, `try`, `except`, and `finally`
-generally do not need colons after the condition.
+`if`, `elif`, `else`, `while`, `for`, `with`, `try`, `except`, `finally`,
+and `def` generally do not need colons after the condition.
 The exception is that the one-line forms of `if`, `elif`, `while`, `for`,
-`with`, and `except` need a colon to separate the condition from the body.
+`with`, `except`, and `def` need a colon to separate the condition from the body.
 But `else`, `try`, and `finally` do not need a colon even in their
 one-line forms (as they lack a condition).
 
@@ -111,7 +111,7 @@ string = 'hello' \ # comment
 
 ## Planned Features / Ideas
 
-* [x] Colon optional after `if`, `elif`, `else`, `while`, `for`, `with`, `try`, `except`, `finally`
+* [x] Colon optional after `if`, `elif`, `else`, `while`, `for`, `with`, `try`, `except`, `finally`, `def`
 * [ ] Colon optional after `match`, etc.
 * [ ] Multi-line lambdas via arrow functions
   * (?) Implicit return (but `def` remains as is)

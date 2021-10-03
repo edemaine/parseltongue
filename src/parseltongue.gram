@@ -597,6 +597,9 @@ colon_block[list] (memo):
 colon_type_comment_block[list] (memo):
     | ':' a=[TYPE_COMMENT] b=block { (a, b) }
     | a=[TYPE_COMMENT] NEWLINE INDENT b=statements DEDENT { (a, b) }
+colon_func_type_comment_block[list] (memo):
+    | ':' a=[func_type_comment] b=block { (a, b) }
+    | a=[func_type_comment] NEWLINE INDENT b=statements DEDENT { (a, b) }
 
 block[list] (memo):
     | NEWLINE INDENT a=statements DEDENT { a }
@@ -647,17 +650,17 @@ function_def[Union[ast.FunctionDef, ast.AsyncFunctionDef]]:
 
 function_def_raw[Union[ast.FunctionDef, ast.AsyncFunctionDef]]:
     | invalid_def_raw
-    | 'def' n=NAME '(' params=[params] ')' a=['->' z=expression { z }] &&':' tc=[func_type_comment] b=block {
+    | 'def' n=NAME '(' params=[params] ')' a=['->' z=expression { z }] b=colon_func_type_comment_block {
         ast.FunctionDef(
             name=n.string,
             args=params or self.make_arguments(None, [], None, [], None),
             returns=a,
-            body=b,
-            type_comment=tc,
+            body=b[1],
+            type_comment=b[0],
             LOCATIONS,
         )
      }
-    | 'async' 'def' n=NAME '(' params=[params] ')' a=['->' z=expression { z }] &&':' tc=[func_type_comment] b=block {
+    | 'async' 'def' n=NAME '(' params=[params] ')' a=['->' z=expression { z }] b=colon_func_type_comment_block {
        self.check_version(
             (3, 5),
             "Async functions are",
@@ -665,8 +668,8 @@ function_def_raw[Union[ast.FunctionDef, ast.AsyncFunctionDef]]:
                 name=n.string,
                 args=params or self.make_arguments(None, [], None, [], None),
                 returns=a,
-                body=b,
-                type_comment=tc,
+                body=b[1],
+                type_comment=b[0],
                 LOCATIONS,
             )
         )
@@ -1959,7 +1962,7 @@ invalid_for_stmt[NoReturn]:
         )
      }
 invalid_def_raw[NoReturn]:
-    | ['async'] a='def' NAME '(' [params] ')' ['->' expression] ':' NEWLINE !INDENT {
+    | ['async'] a='def' NAME '(' [params] ')' ['->' expression] ':'? NEWLINE !INDENT {
         self.raise_indentation_error(
             f"expected an indented block after function definition on line {a.start[0]}"
         )

@@ -1,6 +1,6 @@
 import os
 
-def detect_newline(filename):
+def detect_newline(filename)
   '''Detect newline character sequence in given filename by reading first line
   '''
   with open(filename, 'rb') as f
@@ -10,7 +10,7 @@ def detect_newline(filename):
         return newline.decode('ascii')
   # No newline character => None tells Python to use OS default
 
-def copy_mode(old_filename, new_filename):
+def copy_mode(old_filename, new_filename)
   os.chmod(new_filename, os.stat(old_filename).st_mode)
   try
     import win32security

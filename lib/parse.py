@@ -1299,6 +1299,34 @@ class ParseltongueParser(Parser):
         return None
 
     @memoize
+    def colon_func_type_comment_block(self) -> Optional[list]:
+        # colon_func_type_comment_block: ':' func_type_comment? block | func_type_comment? NEWLINE INDENT statements DEDENT
+        mark = self._mark()
+        if (
+            (literal := self.expect(':'))
+            and
+            (a := self.func_type_comment(),)
+            and
+            (b := self.block())
+        ):
+            return ( a , b )
+        self._reset(mark)
+        if (
+            (a := self.func_type_comment(),)
+            and
+            (_newline := self.expect('NEWLINE'))
+            and
+            (_indent := self.expect('INDENT'))
+            and
+            (b := self.statements())
+            and
+            (_dedent := self.expect('DEDENT'))
+        ):
+            return ( a , b )
+        self._reset(mark)
+        return None
+
+    @memoize
     def block(self) -> Optional[list]:
         # block: NEWLINE INDENT statements DEDENT | simple_stmts | invalid_block
         mark = self._mark()
@@ -1470,7 +1498,7 @@ class ParseltongueParser(Parser):
 
     @memoize
     def function_def_raw(self) -> Optional[Union [ast . FunctionDef , ast . AsyncFunctionDef]]:
-        # function_def_raw: invalid_def_raw | 'def' NAME '(' params? ')' ['->' expression] &&':' func_type_comment? block | 'async' 'def' NAME '(' params? ')' ['->' expression] &&':' func_type_comment? block
+        # function_def_raw: invalid_def_raw | 'def' NAME '(' params? ')' ['->' expression] colon_func_type_comment_block | 'async' 'def' NAME '(' params? ')' ['->' expression] colon_func_type_comment_block
         mark = self._mark()
         tok = self._tokenizer.peek()
         start_lineno, start_col_offset = tok.start
@@ -1492,15 +1520,11 @@ class ParseltongueParser(Parser):
             and
             (a := self._tmp_36(),)
             and
-            (forced := self.expect_forced(self.expect(':'), "':'"))
-            and
-            (tc := self.func_type_comment(),)
-            and
-            (b := self.block())
+            (b := self.colon_func_type_comment_block())
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return ast . FunctionDef ( name = n . string , args = params or self . make_arguments ( None , [] , None , [] , None ) , returns = a , body = b , type_comment = tc , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset , )
+            return ast . FunctionDef ( name = n . string , args = params or self . make_arguments ( None , [] , None , [] , None ) , returns = a , body = b [1] , type_comment = b [0] , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset , )
         self._reset(mark)
         if (
             (literal := self.expect('async'))
@@ -1517,15 +1541,11 @@ class ParseltongueParser(Parser):
             and
             (a := self._tmp_37(),)
             and
-            (forced := self.expect_forced(self.expect(':'), "':'"))
-            and
-            (tc := self.func_type_comment(),)
-            and
-            (b := self.block())
+            (b := self.colon_func_type_comment_block())
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
-            return self . check_version ( ( 3 , 5 ) , "Async functions are" , ast . AsyncFunctionDef ( name = n . string , args = params or self . make_arguments ( None , [] , None , [] , None ) , returns = a , body = b , type_comment = tc , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset , ) )
+            return self . check_version ( ( 3 , 5 ) , "Async functions are" , ast . AsyncFunctionDef ( name = n . string , args = params or self . make_arguments ( None , [] , None , [] , None ) , returns = a , body = b [1] , type_comment = b [0] , lineno=start_lineno, col_offset=start_col_offset, end_lineno=end_lineno, end_col_offset=end_col_offset , ) )
         self._reset(mark)
         return None
 
@@ -6488,7 +6508,7 @@ class ParseltongueParser(Parser):
 
     @memoize
     def invalid_def_raw(self) -> Optional[NoReturn]:
-        # invalid_def_raw: 'async'? 'def' NAME '(' params? ')' ['->' expression] ':' NEWLINE !INDENT
+        # invalid_def_raw: 'async'? 'def' NAME '(' params? ')' ['->' expression] ':'? NEWLINE !INDENT
         mark = self._mark()
         if (
             (opt := self.expect('async'),)
@@ -6505,7 +6525,7 @@ class ParseltongueParser(Parser):
             and
             (opt_2 := self._tmp_180(),)
             and
-            (literal_2 := self.expect(':'))
+            (opt_3 := self.expect(':'),)
             and
             (_newline := self.expect('NEWLINE'))
             and
