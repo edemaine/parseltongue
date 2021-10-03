@@ -630,7 +630,7 @@ class_def[ast.ClassDef]:
 
 class_def_raw[ast.ClassDef]:
     | invalid_class_def_raw
-    | 'class' a=NAME b=['(' z=[arguments] ')' { z }] &&':' c=block {
+    | 'class' a=NAME b=['(' z=[arguments] ')' { z }] c=colon_block {
         ast.ClassDef(
             a.string,
             bases=b[0] if b else [],
@@ -1968,7 +1968,7 @@ invalid_def_raw[NoReturn]:
         )
      }
 invalid_class_def_raw[NoReturn]:
-    | a='class' NAME ['(' [arguments] ')'] ':' NEWLINE !INDENT {
+    | a='class' NAME ['(' [arguments] ')'] ':'? NEWLINE !INDENT {
         self.raise_indentation_error(
             f"expected an indented block after class definition on line {a.start[0]}"
         )

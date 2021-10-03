@@ -1452,7 +1452,7 @@ class ParseltongueParser(Parser):
 
     @memoize
     def class_def_raw(self) -> Optional[ast . ClassDef]:
-        # class_def_raw: invalid_class_def_raw | 'class' NAME ['(' arguments? ')'] &&':' block
+        # class_def_raw: invalid_class_def_raw | 'class' NAME ['(' arguments? ')'] colon_block
         mark = self._mark()
         tok = self._tokenizer.peek()
         start_lineno, start_col_offset = tok.start
@@ -1468,9 +1468,7 @@ class ParseltongueParser(Parser):
             and
             (b := self._tmp_35(),)
             and
-            (forced := self.expect_forced(self.expect(':'), "':'"))
-            and
-            (c := self.block())
+            (c := self.colon_block())
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
@@ -6537,7 +6535,7 @@ class ParseltongueParser(Parser):
 
     @memoize
     def invalid_class_def_raw(self) -> Optional[NoReturn]:
-        # invalid_class_def_raw: 'class' NAME ['(' arguments? ')'] ':' NEWLINE !INDENT
+        # invalid_class_def_raw: 'class' NAME ['(' arguments? ')'] ':'? NEWLINE !INDENT
         mark = self._mark()
         if (
             (a := self.expect('class'))
@@ -6546,7 +6544,7 @@ class ParseltongueParser(Parser):
             and
             (opt := self._tmp_181(),)
             and
-            (literal := self.expect(':'))
+            (opt_1 := self.expect(':'),)
             and
             (_newline := self.expect('NEWLINE'))
             and

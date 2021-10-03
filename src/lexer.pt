@@ -64,7 +64,7 @@ nest_close_ops = set(nest_open_ops.values())
 
 class ParselTongueLexerError(SyntaxError): pass
 
-class Lexer:
+class Lexer
   code: str           # entire input
   len: int            # len(code)
   pos: int            # current index into code
@@ -270,7 +270,7 @@ class Lexer:
       print(f' {tok_name[token.type]}{repr(token.string)}', end = '')
     print()
 
-class Tokenizer(pegen.tokenizer.Tokenizer):
+class Tokenizer(pegen.tokenizer.Tokenizer)
   def __init__(self, file, filename)
     def tokengen()
       lexer = Lexer(file, filename)
