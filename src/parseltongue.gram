@@ -1273,7 +1273,7 @@ await_primary (memo):
 primary:
     | a=primary '.' b=NAME { ast.Attribute(value=a, attr=b.string, ctx=Load, LOCATIONS) }
     | a=primary b=genexp { ast.Call(func=a, args=[b], keywords=[], LOCATIONS) }
-    | a=primary '(' NEWLINE? b=[arguments] ')' {
+    | a=primary '(' b=[arguments] ')' {
         ast.Call(
             func=a,
             args=b[0] if b else [],
@@ -1345,7 +1345,8 @@ atom:
      }
 
 group:
-    | '(' a=(yield_expr | named_expression) ')' { a }
+    | '(' NEWLINE INDENT a=(yield_expr | named_expression) NEWLINE DEDENT ')' { a }
+    | '(' !NEWLINE a=(yield_expr | named_expression) ')' { a }
     | invalid_group
 
 
@@ -1489,7 +1490,8 @@ dictcomp[ast.DictComp]:
 # =======================
 
 arguments[Tuple[list, list]] (memo):
-    | a=args extra_separator b=[INDENT x=args DEDENT { x }] &')' { a if b is None else (a[0] + b[0], a[1] + b[1]) }
+    | NEWLINE? a=args extra_separator b=[INDENT x=args extra_separator DEDENT { x }] &')' { a if b is None else (a[0] + b[0], a[1] + b[1]) }
+    | NEWLINE INDENT a=args extra_separator DEDENT &')' { a }
     | invalid_arguments
 
 args[Tuple[list, list]]:
@@ -1502,13 +1504,11 @@ args[Tuple[list, list]]:
         ([e for e in a if isinstance(e, ast.Starred)],
          [e for e in a if not isinstance(e, ast.Starred)])
     }
-    | INDENT a=args DEDENT { a }
 
 kwargs[list]:
     | a=separator.kwarg_or_starred+ separator b=','.kwarg_or_double_starred+ { a + b }
     | separator.kwarg_or_starred+
     | separator.kwarg_or_double_starred+
-    | INDENT a=kwargs DEDENT { a }
 
 starred_expression:
     | '*' a=expression { ast.Starred(value=a, ctx=Load, LOCATIONS) }
@@ -1813,7 +1813,13 @@ invalid_group[NoReturn]:
     | '(' a=starred_expression ')' {
         self.raise_syntax_error_known_location("cannot use starred expression here", a)
      }
+    | '(' INDENT a=starred_expression DEDENT ')' {
+        self.raise_syntax_error_known_location("cannot use starred expression here", a)
+     }
     | '(' a='**' expression ')' {
+        self.raise_syntax_error_known_location("cannot use double starred expression here", a)
+     }
+    | '(' INDENT a='**' expression DEDENT ')' {
         self.raise_syntax_error_known_location("cannot use double starred expression here", a)
      }
 invalid_import_from_targets[NoReturn]:

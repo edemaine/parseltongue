@@ -27,3 +27,34 @@
     '!' * # automatic continuation after operator
     3 +
     '\n'
+
+  x = (
+    y +
+    z
+  )
+
+  x = (
+    y +
+    z)
+
+  pt = (x, y)
+  pt = (x, y
+  )
+  pt = (x,
+    y
+  )
+  pt = (
+  x
+  y
+  )
+  pt = (
+    x
+    y
+  )
+  pt = (
+    x,
+    y,
+  )
+  pt = (
+    x, y
+  )

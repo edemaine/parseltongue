@@ -106,6 +106,9 @@ class Lexer:
             if nest.closing(tok):
                 return self.nests.pop()
             elif nest.type == token.INDENT:
+                prev = self.prev()
+                if not (prev and prev.type == token.NEWLINE):
+                    self.tokens.append(TokenInfo(token.NEWLINE, tok.string, tok.start, tok.end, tok.line))
                 self.dedent(tok)
             else:
                 self.error(f'{nest} closed by {tok}')

@@ -150,6 +150,11 @@ class Lexer
         # Implicitly close additional indentation when a bracket gets closed:
         #   f((x) ->
         #     x)
+        # Precede DEDENT with NEWLINE (if not already one)
+        prev = self.prev()
+        unless prev and prev.type == token.NEWLINE
+          self.tokens.append(
+            TokenInfo(token.NEWLINE, tok.string, tok.start, tok.end, tok.line))
         self.dedent(tok)
       else
         self.error(f"{nest} closed by {tok}")

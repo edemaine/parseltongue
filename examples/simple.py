@@ -21,3 +21,12 @@ while not (x or y):
 while True:
     pass
 x = 'hello world!' * 3 + '\n'
+x = y + z
+x = y + z
+pt = (x, y)
+pt = (x, y)
+pt = (x, y)
+pt = (x, y)
+pt = (x, y)
+pt = (x, y)
+pt = (x, y)
