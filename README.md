@@ -173,4 +173,5 @@ into Python code in `lib` (using the latter).
 If you accidentally trash the transpiler, use `git checkout lib`
 to reset to the last committed state.
 
-To build the examples, run `make` within `examples`.
+To build the examples, run `make examples` from the root directory,
+or run `make` from within `examples`.
