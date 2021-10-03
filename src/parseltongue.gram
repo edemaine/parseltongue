@@ -1126,8 +1126,8 @@ star_named_expressions[list]:
     | INDENT a=separator.star_named_expression+ extra_separator DEDENT { a }
 
 star_named_expressions_with_separator[list]:
-    | a=star_named_expression ',' { [a] + (b or []) }
     | a=star_named_expression separator b=star_named_expressions { [a] + b }
+    | a=star_named_expression ',' { [a] }
     | INDENT a=star_named_expression ',' DEDENT { [a] }
     | INDENT a=star_named_expression separator b=separator.star_named_expressions+ extra_separator DEDENT { [a] + b }
 

@@ -159,7 +159,10 @@ To get a development environment running, follow these steps:
 3. `poetry install`
 -->
 
-Currently, to rebuild the grammar, run `make` within `src`.
-This will change once Parseltongue is written in itself.
+To build Parseltongue, run `python3.9 make.py`.
+This transpiles the source code in `src` (mostly written in Parseltongue)
+into Python code in `lib` (using the latter).
+If you accidentally trash the transpiler, use `git checkout lib`
+to reset to the last committed state.
 
 To build the examples, run `make` within `examples`.

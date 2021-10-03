@@ -1,0 +1,85 @@
+#!/usr/bin/env python3.9
+
+import glob, os, shutil, subprocess, sys
+
+#PYTHON = 'poetry run python'
+PYTHON = 'python3.9'
+
+ROOT_DIR = os.path.relpath(os.path.dirname(__file__))
+SRC_DIR = os.path.join(ROOT_DIR, 'src')
+BUILD_DIR = os.path.join(ROOT_DIR, 'lib')
+
+PEGEN_PATH = os.path.join(ROOT_DIR, 'pegen', 'src')
+PEGEN_COPY = ['tokenizer.py', 'parser.py']
+PEGEN_COPY_DEST = os.path.join(BUILD_DIR, 'pegen')
+
+GRAMMAR_INPUT = os.path.join(SRC_DIR, 'parseltongue.gram')
+GRAMMAR_OUTPUT = os.path.join(BUILD_DIR, 'parse.py')
+
+sys.path.insert(0, PEGEN_PATH)
+import pegen.__main__ as pegen
+
+sys.path.insert(0, BUILD_DIR)
+import util
+
+def need_build(dest, srcs):
+  if isinstance(srcs, str): srcs = [srcs]
+  try:
+    last = os.stat(dest).st_mtime 
+  except FileNotFoundError:
+    return True
+  for src in srcs:
+    if last <= os.stat(src).st_mtime:
+      return True
+  return False
+
+def mkdir(dir):
+  if not os.path.isdir(dir):
+    print(f'\tmkdir -p {dir}')
+    os.makedirs(dir)
+
+def copy(src, destdir):
+  mkdir(destdir)
+  destfile = os.path.join(destdir, os.path.basename(src))
+  if need_build(destfile, src):
+    print(f'\tcp {src} {destfile}')
+    shutil.copy(src, destfile)
+    util.copy_mode(src, destfile)
+
+class new_argv:
+  def __init__(self, new_argv):
+    self.new_argv = new_argv
+  def __enter__(self):
+    self.old_argv = sys.argv
+    sys.argv = self.new_argv
+  def __exit__(self, *exc):
+    sys.argv = self.old_argv
+
+def run_python_main(main, argv):
+  print('\t' + ' '.join(argv))
+  with new_argv(argv):
+    main()
+
+def make_grammar():
+  if need_build(GRAMMAR_OUTPUT, GRAMMAR_INPUT):
+    mkdir(os.path.dirname(GRAMMAR_OUTPUT))
+    run_python_main(pegen.main,
+      ['pegen', '--quiet', GRAMMAR_INPUT, '-o', GRAMMAR_OUTPUT])
+  for filename in PEGEN_COPY:
+    copy(os.path.join(PEGEN_PATH, 'pegen', filename), PEGEN_COPY_DEST)
+
+def make_transpile():
+  # Import now in case parser changed
+  sys.path.insert(0, ROOT_DIR)
+  import lib.__main__ as parseltongue
+
+  mkdir(BUILD_DIR)
+  run_python_main(parseltongue.main,
+    ['parseltongue', '-o', BUILD_DIR] +
+    glob.glob(os.path.join(SRC_DIR, '*.pt')))
+
+def make():
+  make_grammar()
+  make_transpile()
+
+if __name__ == '__main__': make()

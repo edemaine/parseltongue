@@ -1,15 +1,27 @@
-import ast, os, sys, traceback
+import argparse, ast, os, sys, traceback
 import lexer, parse
 
 import util
 
+argparser = argparse.ArgumentParser('Parseltongue transpiler')
+argparser.add_argument('filenames', metavar='file.pt', nargs='+',
+  help = 'Parseltongue source files')
+argparser.add_argument('-o', '--output', dest = 'output',
+  help = 'destination directory for Python output')
+
 def main():
-  for pt_filename in sys.argv[1:]:
+  args = argparser.parse_args()
+  for pt_filename in args.filenames:
     basename, ext = os.path.splitext(pt_filename)
-    if ext == '.py':
-      py_filename = pt_filename + '.py'
-    else:
-      py_filename = basename + '.py'
+    py_filename = basename + '.py'
+    if args.output is not None:
+      py_filename = os.path.join(args.output, os.path.basename(py_filename))
+    try:
+      if pt_filename == py_filename or \
+         os.path.samefile(pt_filename, py_filename):
+        py_filename += '.py'
+    except FileNotFoundError:
+      pass
     print(pt_filename, '->', py_filename)
     newline = util.detect_newline(pt_filename)
     pt_file = open(pt_filename, 'r')

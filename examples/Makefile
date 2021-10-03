@@ -1,8 +1,8 @@
 #PYTHON = poetry run python
 PYTHON = python3.9
-PARSELTONGUE = PYTHONPATH="../pegen/src" $(PYTHON) ../src
+PARSELTONGUE = $(PYTHON) ../lib
 
-%.py: %.pt ../src/*.py
+%.py: %.pt ../lib/*.py
 	$(PARSELTONGUE) $<
 
 all: simple.py
