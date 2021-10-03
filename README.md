@@ -113,6 +113,7 @@ string = 'hello' \ # comment
 
 * [x] Colon optional after `if`, `elif`, `else`, `while`, `for`, `with`, `try`, `except`, `finally`, `def`, `class`
 * [ ] Colon optional after `match`, etc.
+* [ ] Optional body for `class`, `except`, etc. (avoid `pass`)
 * [ ] Multi-line lambdas via arrow functions
   * (?) Implicit return (but `def` remains as is)
 * Most statements become expressions
