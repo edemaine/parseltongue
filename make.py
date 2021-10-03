@@ -69,10 +69,22 @@ def make_grammar():
     copy(os.path.join(PEGEN_PATH, 'pegen', filename), PEGEN_COPY_DEST)
 
 def make_transpile(check = False):
-  # Import now in case parser changed
+  # Import after compiling parser
   sys.path.insert(0, ROOT_DIR)
   import lib.__main__ as parseltongue
-  importlib.reload(parseltongue)
+
+  # Reload all Parseltongue modules in case changed
+  reload = []
+  for module in sys.modules.values():
+    if hasattr(module, '__file__') and module.__file__ is not None:
+      path = os.path.relpath(module.__file__, BUILD_DIR)
+      if not path.startswith(os.pardir):
+        reload.append((module, path))
+  if (parseltongue, '__main__.py') not in reload:
+    reload.append((parseltongue, '__main__.py'))
+  print('Reloading modules', ', '.join(path for module, path in reload))
+  for module, path in reload:
+    importlib.reload(module)
 
   mkdir(BUILD_DIR)
   return run_python_main(parseltongue.main,
