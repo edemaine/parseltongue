@@ -12,11 +12,11 @@ def detect_newline(filename):
 
 def copy_mode(old_filename, new_filename):
   os.chmod(new_filename, os.stat(old_filename).st_mode)
-  try:
+  try
     import win32security
-  except ImportError:
+  except ImportError
     pass  # not Windows
-  else:
+  else
     win32security.SetFileSecurity(new_filename,
       win32security.DACL_SECURITY_INFORMATION,
       win32security.GetFileSecurity(

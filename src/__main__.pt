@@ -19,11 +19,11 @@ def main():
     py_filename = basename + '.py'
     if args.output is not None
       py_filename = os.path.join(args.output, os.path.basename(py_filename))
-    try:
+    try
       if pt_filename == py_filename or
          os.path.samefile(pt_filename, py_filename)
         py_filename += '.py'
-    except FileNotFoundError:
+    except FileNotFoundError
       pass
 
     if args.check

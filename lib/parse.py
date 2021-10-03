@@ -2203,7 +2203,7 @@ class ParseltongueParser(Parser):
 
     @memoize
     def try_stmt(self) -> Optional[ast . Try]:
-        # try_stmt: invalid_try_stmt | 'try' &&':' block finally_block | 'try' &&':' block except_block+ else_block? finally_block?
+        # try_stmt: invalid_try_stmt | 'try' ':'? block finally_block | 'try' ':'? block except_block+ else_block? finally_block?
         mark = self._mark()
         tok = self._tokenizer.peek()
         start_lineno, start_col_offset = tok.start
@@ -2215,7 +2215,7 @@ class ParseltongueParser(Parser):
         if (
             (literal := self.expect('try'))
             and
-            (forced := self.expect_forced(self.expect(':'), "':'"))
+            (opt := self.expect(':'),)
             and
             (b := self.block())
             and
@@ -2228,7 +2228,7 @@ class ParseltongueParser(Parser):
         if (
             (literal := self.expect('try'))
             and
-            (forced := self.expect_forced(self.expect(':'), "':'"))
+            (opt := self.expect(':'),)
             and
             (b := self.block())
             and
@@ -2246,7 +2246,7 @@ class ParseltongueParser(Parser):
 
     @memoize
     def except_block(self) -> Optional[ast . ExceptHandler]:
-        # except_block: invalid_except_stmt_indent | 'except' expression ['as' NAME] ':' block | 'except' ':' block | invalid_except_stmt
+        # except_block: invalid_except_stmt_indent | 'except' expression ['as' NAME] colon_block | 'except' colon_block | invalid_except_stmt
         mark = self._mark()
         tok = self._tokenizer.peek()
         start_lineno, start_col_offset = tok.start
@@ -2262,9 +2262,7 @@ class ParseltongueParser(Parser):
             and
             (t := self._tmp_62(),)
             and
-            (literal_1 := self.expect(':'))
-            and
-            (b := self.block())
+            (b := self.colon_block())
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
@@ -2273,9 +2271,7 @@ class ParseltongueParser(Parser):
         if (
             (literal := self.expect('except'))
             and
-            (literal_1 := self.expect(':'))
-            and
-            (b := self.block())
+            (b := self.colon_block())
         ):
             tok = self._tokenizer.get_last_non_whitespace_token()
             end_lineno, end_col_offset = tok.end
@@ -2290,7 +2286,7 @@ class ParseltongueParser(Parser):
 
     @memoize
     def finally_block(self) -> Optional[list]:
-        # finally_block: invalid_finally_stmt | 'finally' &&':' block
+        # finally_block: invalid_finally_stmt | 'finally' ':'? block
         mark = self._mark()
         if (
             (invalid_finally_stmt := self.invalid_finally_stmt())
@@ -2300,7 +2296,7 @@ class ParseltongueParser(Parser):
         if (
             (literal := self.expect('finally'))
             and
-            (forced := self.expect_forced(self.expect(':'), "':'"))
+            (opt := self.expect(':'),)
             and
             (a := self.block())
         ):
@@ -6130,25 +6126,23 @@ class ParseltongueParser(Parser):
 
     @memoize
     def invalid_try_stmt(self) -> Optional[NoReturn]:
-        # invalid_try_stmt: 'try' ':' NEWLINE !INDENT | 'try' ':' block !('except' | 'finally')
+        # invalid_try_stmt: 'try' ':'? NEWLINE !INDENT | 'try' colon_block !('except' | 'finally')
         mark = self._mark()
         if (
             (a := self.expect('try'))
             and
-            (literal := self.expect(':'))
+            (opt := self.expect(':'),)
             and
             (_newline := self.expect('NEWLINE'))
             and
             self.negative_lookahead(self.expect, 'INDENT')
         ):
-            return self . raise_indentation_error ( f"expected an indented block after 'try' statement on line {a.start[0]}" , )
+            return self . raise_indentation_error ( f"expected a block after 'try' statement on line {a.start[0]}" , )
         self._reset(mark)
         if (
             (literal := self.expect('try'))
             and
-            (literal_1 := self.expect(':'))
-            and
-            (block := self.block())
+            (colon_block := self.colon_block())
             and
             self.negative_lookahead(self._tmp_175, )
         ):
@@ -6158,7 +6152,7 @@ class ParseltongueParser(Parser):
 
     @memoize
     def invalid_except_stmt(self) -> Optional[None]:
-        # invalid_except_stmt: 'except' expression ',' expressions ['as' NAME] ':' | 'except' expression ['as' NAME] NEWLINE | 'except' NEWLINE
+        # invalid_except_stmt: 'except' expression ',' expressions ['as' NAME] (':' | NEWLINE)
         mark = self._mark()
         if (
             (literal := self.expect('except'))
@@ -6171,50 +6165,32 @@ class ParseltongueParser(Parser):
             and
             (opt := self._tmp_176(),)
             and
-            (literal_2 := self.expect(':'))
+            (_tmp_177 := self._tmp_177())
         ):
             return self . raise_syntax_error_starting_from ( "exception group must be parenthesized" , a )
-        self._reset(mark)
-        if (
-            (a := self.expect('except'))
-            and
-            (expression := self.expression())
-            and
-            (opt := self._tmp_177(),)
-            and
-            (_newline := self.expect('NEWLINE'))
-        ):
-            return self . store_syntax_error ( "expected ':'" )
-        self._reset(mark)
-        if (
-            (a := self.expect('except'))
-            and
-            (_newline := self.expect('NEWLINE'))
-        ):
-            return self . store_syntax_error ( "expected ':'" )
         self._reset(mark)
         return None
 
     @memoize
     def invalid_finally_stmt(self) -> Optional[NoReturn]:
-        # invalid_finally_stmt: 'finally' ':' NEWLINE !INDENT
+        # invalid_finally_stmt: 'finally' ':'? NEWLINE !INDENT
         mark = self._mark()
         if (
             (a := self.expect('finally'))
             and
-            (literal := self.expect(':'))
+            (opt := self.expect(':'),)
             and
             (_newline := self.expect('NEWLINE'))
             and
             self.negative_lookahead(self.expect, 'INDENT')
         ):
-            return self . raise_indentation_error ( f"expected an indented block after 'finally' statement on line {a.start[0]}" )
+            return self . raise_indentation_error ( f"expected a block after 'finally' statement on line {a.start[0]}" )
         self._reset(mark)
         return None
 
     @memoize
     def invalid_except_stmt_indent(self) -> Optional[NoReturn]:
-        # invalid_except_stmt_indent: 'except' expression ['as' NAME] ':' NEWLINE !INDENT | 'except' ':' NEWLINE !INDENT
+        # invalid_except_stmt_indent: 'except' expression ['as' NAME] ':'? NEWLINE !INDENT | 'except' ':'? NEWLINE !INDENT
         mark = self._mark()
         if (
             (a := self.expect('except'))
@@ -6223,7 +6199,7 @@ class ParseltongueParser(Parser):
             and
             (opt := self._tmp_178(),)
             and
-            (literal := self.expect(':'))
+            (opt_1 := self.expect(':'),)
             and
             (_newline := self.expect('NEWLINE'))
             and
@@ -6234,7 +6210,7 @@ class ParseltongueParser(Parser):
         if (
             (a := self.expect('except'))
             and
-            (literal := self.expect(':'))
+            (opt := self.expect(':'),)
             and
             (_newline := self.expect('NEWLINE'))
             and
@@ -9270,14 +9246,17 @@ class ParseltongueParser(Parser):
 
     @memoize
     def _tmp_177(self) -> Optional[Any]:
-        # _tmp_177: 'as' NAME
+        # _tmp_177: ':' | NEWLINE
         mark = self._mark()
         if (
-            (literal := self.expect('as'))
-            and
-            (name := self.name())
+            (literal := self.expect(':'))
         ):
-            return [literal, name]
+            return literal
+        self._reset(mark)
+        if (
+            (_newline := self.expect('NEWLINE'))
+        ):
+            return _newline
         self._reset(mark)
         return None
 

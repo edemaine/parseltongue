@@ -2,9 +2,6 @@
 
 import glob, importlib, os, shutil, subprocess, sys
 
-#PYTHON = 'poetry run python'
-PYTHON = 'python3.9'
-
 ROOT_DIR = os.path.relpath(os.path.dirname(__file__))
 SRC_DIR = os.path.join(ROOT_DIR, 'src')
 BUILD_DIR = os.path.join(ROOT_DIR, 'lib')
