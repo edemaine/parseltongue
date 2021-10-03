@@ -1,38 +1,147 @@
 # Parseltongue: Better Python
 
-## Features So Far
+## Goals and Design Principles
 
-* List, tuple, dict, set literals and function arguments can use newlines
-  instead of commas (except for singleton tuples).
-  You can use up to one indentation, possible in the middle of the items,
-  to allow for things like:
-  ```py
-  [1, 2, 3
-   4, 5, 6]
-  ```
-* `if`, `elif`, `else`, `while` do not need colons after the condition,
-  except when using one-line `if`, `elif`, `while`.
+* Parseltongue **compiles to Python**
+  (so it's fully compatible with existing Python libraries, etc.;
+  and if there's ever any doubt about what some syntax means,
+  you can study the compiled-to-Python code)
+* **Most Python code** is still valid Parseltongue
+  (but there are some unavoidable exceptions)
+* Most **punctuation is optional** (including most colons and many commas)
+* Simplify use of self (not yet implemented)
 
-  ```py
-  if x > 10
-    print('big')
-  elif x >= 0
-    print('small')
-  else print('negative')
-  ```
-* `unless` shorthand for `if not`.
-* `until` shorthand for `while not`.
-* `loop` shorthand for `while True`.
-* Implicit continuation when ending a line with an operator:
-  ```py
-  sum = 12345 +
-        54321
-  ```
-* Comments after `\` continuations:
-  ```py
-  string = \ # comment
+## Features
+
+### Newline Alternative to Commas
+
+`list`, `tuple`, `dict`, and `set` literals, and function arguments,
+can use newlines instead of commas to separate elements:
+
+```coffee
+stuff = {
+  'foo': 'bar'
+  'list': [
     'hello'
+    'world'
+    42
+  ]
+  'set': {
+    1
+    2
+    3
+  }
+]
+```
+
+The one exception is singleton tuples `(item,)`, which still need a comma to
+distinguish from a parenthesized expression like `(item)`.
+
+Commas are still allowed before newlines, as in Python.
+Commas are still necessary between items on the same line.
+You are allowed to put the items (or just a suffix of them) one indentation
+level in, to allow for things like:
+
+```coffee
+[1, 2, 3
+ 4, 5, 6
+ 7, 8, 9]
+```
+
+### Optional Colons
+
+`if`, `elif`, `else`, `while` generally do not need colons after the condition.
+The exception is that one-line `if`, `elif`, and `while` need a colon
+to separate the condition from the body.  (But one-line `else` does not.)
+
+```py
+if x > 10
+  print('big')
+elif x >= 0
+  print('small')
+else print('negative')
+```
+
+### Control Syntax Convenience
+
+`unless` is shorthand for `if not`:
+
+```coffee
+unless error
+  print('all good')
+```
+
+`until` is shorthand for `while not`:
+
+```coffee
+until done
+  print('looping')
+  done = True
+```
+
+`loop` shorthand for `while True`:
+
+```coffee
+loop
+  if done: break
+```
+
+### Line Continuation
+
+Lines are implicitly and automatically continued (as if they ended with `\`)
+when they end with a binary or unary operator:
+
+```coffee
+sum = 12345 +
+      54321
+```
+
+In addition, comments are allowed after explicit `\` continuations:
+
+```py
+string = 'hello' \ # comment
+         'world'
+```
+
+## Planned Features / Ideas
+
+* [x] Colon optional after `if`, `elif`, `else`, `while`,
+* [ ] Colon optional after `for`, `try`, `except`, `finally`, etc.
+* [ ] Multi-line lambdas via arrow functions
+  * (?) Implicit return (but `def` remains as is)
+* Most statements become expressions
+  * `for`, `while` loops return list of results
+  * `if`
+  * `match`
+  * `try`
+  * More?
+* CoffeeScript `do (var) -> ...` for easier scoping (or maybe `call`?)
+* `do...while/until` loops and `do...if/unless` late conditions, like so:
+  ```py
+  do
+    code()
+  ...unless condition()
   ```
+* self via `@`
+  * `@foo` in constructor argument
+* (?) Implicit function calls without parentheses
+  (this would mean `foo (arg, arg)` is different from `foo(arg, arg)`)
+* (?) Custom infix operators
+* (?) Argument initializers that run each time instead of getting memoized
+  (`:=`? or replace current behavior, and break Python compatibility)
+* (?) Require `shadow` declaration (similar to `nonlocal`/`global`)
+  when shadowing variable from parent scope (perhaps as an option)
+* Minor helpful syntax
+  * Block comments via `###` (incompatible with "Python is Parseltongue")
+  * [x] Implicit continuation when ending line with operator
+  * Implicit continuation when starting next line with `.`
+  * [x] Comments on continuation lines
+  * [x] `unless`, `until`, `loop`
+  * `elunless`?
+  * Backwards one-line `if`, `unless`, `for`, `while`, `until`
+  * `then` as alternative to `:` in one-line `if ...:`
+  * `..` (and `...`?) alternative to range and slices
+  * `and=`, `or=`
 
 ## Usage
 
