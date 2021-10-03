@@ -3,7 +3,7 @@ import lexer, parse
 
 import util
 
-argparser = argparse.ArgumentParser('Parseltongue transpiler')
+argparser = argparse.ArgumentParser('parseltongue')
 argparser.add_argument('filenames', metavar='file.pt', nargs='+',
   help = 'Parseltongue source files')
 argparser.add_argument('-o', '--output', dest = 'output',

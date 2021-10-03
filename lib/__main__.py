@@ -1,7 +1,7 @@
 import argparse, ast, os, sys, traceback
 import lexer, parse
 import util
-argparser = argparse.ArgumentParser('Parseltongue transpiler')
+argparser = argparse.ArgumentParser('parseltongue')
 argparser.add_argument('filenames', metavar='file.pt', nargs='+', help='Parseltongue source files')
 argparser.add_argument('-o', '--output', dest='output', help='destination directory for Python output')
 argparser.add_argument('-c', '--check', dest='check', action='store_true', help="check for changes, don't modify files")
