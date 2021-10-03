@@ -9732,7 +9732,7 @@ class ParseltongueParser(Parser):
         self._reset(mark)
         return None
 
-    KEYWORDS = ('as', 'unless', 'False', 'loop', 'is', 'None', 'del', 'finally', 'continue', 'from', 'try', 'def', 'raise', 'pass', 'return', 'global', 'while', 'and', 'True', 'or', 'except', 'assert', 'nonlocal', 'not', 'until', 'await', 'if', 'in', 'async', 'class', 'import', 'yield', 'elif', 'with', 'else', 'for', 'break', 'lambda')
+    KEYWORDS = ('False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'loop', 'nonlocal', 'not', 'or', 'pass', 'raise', 'return', 'try', 'unless', 'until', 'while', 'with', 'yield')
     SOFT_KEYWORDS = ('_', 'case', 'match')
 
 def main():

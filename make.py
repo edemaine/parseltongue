@@ -61,7 +61,8 @@ def run_python_main(main, argv):
     return main()
 
 def make_grammar():
-  if need_build(GRAMMAR_OUTPUT, GRAMMAR_INPUT):
+  if need_build(GRAMMAR_OUTPUT, [GRAMMAR_INPUT] +
+      glob.glob(os.path.join(PEGEN_PATH, 'pegen', '*.py'))):
     mkdir(os.path.dirname(GRAMMAR_OUTPUT))
     run_python_main(pegen.main,
       ['pegen', '--quiet', GRAMMAR_INPUT, '-o', GRAMMAR_OUTPUT])
