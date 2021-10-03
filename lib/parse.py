@@ -6015,7 +6015,7 @@ class ParseltongueParser(Parser):
 
     @memoize
     def invalid_with_item(self) -> Optional[NoReturn]:
-        # invalid_with_item: expression 'as' expression &(',' | ')' | ':')
+        # invalid_with_item: expression 'as' expression &(',' | ')' | ':' | NEWLINE)
         mark = self._mark()
         if (
             (expression := self.expression())
@@ -9155,7 +9155,7 @@ class ParseltongueParser(Parser):
 
     @memoize
     def _tmp_170(self) -> Optional[Any]:
-        # _tmp_170: ',' | ')' | ':'
+        # _tmp_170: ',' | ')' | ':' | NEWLINE
         mark = self._mark()
         if (
             (literal := self.expect(','))
@@ -9171,6 +9171,11 @@ class ParseltongueParser(Parser):
             (literal := self.expect(':'))
         ):
             return literal
+        self._reset(mark)
+        if (
+            (_newline := self.expect('NEWLINE'))
+        ):
+            return _newline
         self._reset(mark)
         return None
 
