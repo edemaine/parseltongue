@@ -197,7 +197,7 @@ class Lexer:
         self.dump()
         raise ParselTongueLexerError('\n'.join([f'{self.filename}:{self.line_num}.{self.pos - self.line_start + 1} - {msg}', self.line, ' ' * (self.pos - self.line_start) + '^']))
 
-    def dump(self):
+    def dump(self, columns=False):
         line = None
         line_width = len(str(self.tokens[-1].start[0]))
         for token in self:
@@ -206,7 +206,10 @@ class Lexer:
                     print()
                 print(f'{token.start[0]:{line_width}}', end='')
                 line = token.end[0]
-            print(f' {tok_name[token.type]}{repr(token.string)}', end='')
+            print(' ', end='')
+            if columns:
+                print(f'[{token.start[1]}]', end='')
+            print(f'{tok_name[token.type]}{repr(token.string)}', end='')
         print()
 
 class Tokenizer(pegen.tokenizer.Tokenizer):
@@ -221,10 +224,14 @@ class Tokenizer(pegen.tokenizer.Tokenizer):
         super().__init__(tokengen(), path=filename)
 
 def main():
-    import sys
-    for filename in sys.argv[1:]:
+    import argparse, sys
+    argparser = argparse.ArgumentParser('lexer.py')
+    argparser.add_argument('filenames', metavar='file.pt', nargs='+', help='Parseltongue source files')
+    argparser.add_argument('-c', '--columns', dest='columns', action='store_true', help='show column numbers')
+    args = argparser.parse_args()
+    for filename in args.filenames:
         print(f'# {filename}')
         lexer = Lexer(open(filename, 'r').read(), filename)
-        lexer.dump()
+        lexer.dump(columns=args.columns)
 if __name__ == '__main__':
     main()
