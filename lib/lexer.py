@@ -205,7 +205,7 @@ class Lexer:
                 if line is not None:
                     print()
                 print(f'{token.start[0]:{line_width}}', end='')
-                line = token.end[0]
+                line = token.start[0]
             print(' ', end='')
             if columns:
                 print(f'[{token.start[1]}]', end='')
