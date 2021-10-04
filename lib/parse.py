@@ -4599,14 +4599,12 @@ class ParseltongueParser(Parser):
 
     @memoize
     def dict(self) -> Optional[ast . Dict]:
-        # dict: '{' NEWLINE? double_starred_kvpairs? '}' | '{' NEWLINE? invalid_double_starred_kvpairs '}'
+        # dict: '{' double_starred_kvpairs? '}' | '{' invalid_double_starred_kvpairs '}'
         mark = self._mark()
         tok = self._tokenizer.peek()
         start_lineno, start_col_offset = tok.start
         if (
             (literal := self.expect('{'))
-            and
-            (opt := self.expect('NEWLINE'),)
             and
             (a := self.double_starred_kvpairs(),)
             and
@@ -4619,8 +4617,6 @@ class ParseltongueParser(Parser):
         if (
             (literal := self.expect('{'))
             and
-            (opt := self.expect('NEWLINE'),)
-            and
             (invalid_double_starred_kvpairs := self.invalid_double_starred_kvpairs())
             and
             (literal_1 := self.expect('}'))
@@ -4631,7 +4627,7 @@ class ParseltongueParser(Parser):
 
     @memoize
     def double_starred_kvpairs(self) -> Optional[list]:
-        # double_starred_kvpairs: separator.double_starred_kvpair+ extra_separator [INDENT double_starred_kvpairs DEDENT] | INDENT separator.double_starred_kvpair+ extra_separator DEDENT
+        # double_starred_kvpairs: separator.double_starred_kvpair+ extra_separator [INDENT double_starred_kvpairs DEDENT] | NEWLINE INDENT separator.double_starred_kvpair+ extra_separator DEDENT
         mark = self._mark()
         if (
             (a := self._gather_114())
@@ -4643,6 +4639,8 @@ class ParseltongueParser(Parser):
             return a + ( b or [] )
         self._reset(mark)
         if (
+            (_newline := self.expect('NEWLINE'))
+            and
             (_indent := self.expect('INDENT'))
             and
             (a := self._gather_117())
@@ -6069,7 +6067,7 @@ class ParseltongueParser(Parser):
 
     @memoize
     def invalid_group(self) -> Optional[NoReturn]:
-        # invalid_group: '(' starred_expression ')' | '(' INDENT starred_expression DEDENT ')' | '(' '**' expression ')' | '(' INDENT '**' expression DEDENT ')'
+        # invalid_group: '(' starred_expression ')' | '(' NEWLINE INDENT starred_expression NEWLINE DEDENT ')' | '(' '**' expression ')' | '(' NEWLINE INDENT '**' expression NEWLINE DEDENT ')'
         mark = self._mark()
         if (
             (literal := self.expect('('))
@@ -6083,9 +6081,13 @@ class ParseltongueParser(Parser):
         if (
             (literal := self.expect('('))
             and
+            (_newline := self.expect('NEWLINE'))
+            and
             (_indent := self.expect('INDENT'))
             and
             (a := self.starred_expression())
+            and
+            (_newline_1 := self.expect('NEWLINE'))
             and
             (_dedent := self.expect('DEDENT'))
             and
@@ -6107,11 +6109,15 @@ class ParseltongueParser(Parser):
         if (
             (literal := self.expect('('))
             and
+            (_newline := self.expect('NEWLINE'))
+            and
             (_indent := self.expect('INDENT'))
             and
             (a := self.expect('**'))
             and
             (expression := self.expression())
+            and
+            (_newline_1 := self.expect('NEWLINE'))
             and
             (_dedent := self.expect('DEDENT'))
             and
@@ -6600,7 +6606,7 @@ class ParseltongueParser(Parser):
 
     @memoize
     def invalid_double_starred_kvpairs(self) -> Optional[None]:
-        # invalid_double_starred_kvpairs: ((double_starred_kvpair separator))+ extra_separator [INDENT ((double_starred_kvpair separator))*] invalid_kvpair | INDENT ((double_starred_kvpair separator))+ invalid_kvpair | expression ':' '*' bitwise_or | expression ':' &('}' | ',')
+        # invalid_double_starred_kvpairs: ((double_starred_kvpair separator))+ extra_separator [INDENT ((double_starred_kvpair separator))*] invalid_kvpair | NEWLINE INDENT ((double_starred_kvpair separator))+ invalid_kvpair | expression ':' '*' bitwise_or | expression ':' &('}' | ',')
         mark = self._mark()
         if (
             (_loop1_183 := self._loop1_183())
@@ -6614,6 +6620,8 @@ class ParseltongueParser(Parser):
             return None  # pragma: no cover
         self._reset(mark)
         if (
+            (_newline := self.expect('NEWLINE'))
+            and
             (_indent := self.expect('INDENT'))
             and
             (_loop1_185 := self._loop1_185())
