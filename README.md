@@ -147,8 +147,8 @@ string = 'hello' \ # comment
   * `elunless`?
   * Ability to `break` or `continue` out of a specific loop,
     not just the immediately containing one (unsure which mechanism is best;
-    see https://www.python.org/dev/peps/pep-3136/)
-  * `for...then`, like the opposite of `for...else`;
+    see https://www.python.org/dev/peps/pep-3136/; maybe numeric plus 'all')
+  * `for...then` (or `for...broken`), like the opposite of `for...else`;
     can have both `then` and `else` clause, in either order
   * Backwards one-line `if`, `unless`, `for`, `while`, `until`
   * `then` as alternative to `:` in one-line `if ...:`
