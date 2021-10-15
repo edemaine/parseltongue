@@ -131,6 +131,8 @@ string = 'hello' \ # comment
   ```
 * self via `@`
   * `@foo` in constructor argument
+* None coalescing: `?.`, `?[`, `?=` or `??=`, `?` or `??` operator
+  (see [PEP 0505](https://www.python.org/dev/peps/pep-0505/))
 * (?) Implicit function calls without parentheses
   (this would mean `foo (arg, arg)` is different from `foo(arg, arg)`)
 * (?) Custom infix operators
