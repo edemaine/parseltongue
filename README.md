@@ -129,8 +129,24 @@ string = 'hello' \ # comment
     code()
   ...unless condition()
   ```
+* Analog of CoffeeScript's `when` / analog from list comprehensions:
+  `for x in list if condition` and `for x in list unless condition`.
+  Also `while condition if condition` and `while condition unless condition`.
+* Multi-line list comprehensions:
+  ```py
+  [
+    for x in list   # list comprehension
+      ...
+    for x in list   # concatenated list comprehension
+      ...
+    (for x in list  # parens make this a generator expression
+      ...
+    )
+  ]
+  ```
 * self via `@`
   * `@foo` in constructor argument
+  * Conflict with decorators?
 * None coalescing: `?.`, `?[`, `?=` or `??=`, `?` or `??` operator
   (see [PEP 0505](https://www.python.org/dev/peps/pep-0505/))
 * (?) Implicit function calls without parentheses
