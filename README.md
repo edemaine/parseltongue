@@ -132,6 +132,7 @@ string = 'hello' \ # comment
 * Analog of CoffeeScript's `when` / analog from list comprehensions:
   `for x in list if condition` and `for x in list unless condition`.
   Also `while condition if condition` and `while condition unless condition`.
+* `for key: value in dict` (like CoffeeScript `for key, value of object`)
 * Multi-line list comprehensions:
   ```py
   [
