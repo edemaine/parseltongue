@@ -150,6 +150,8 @@ string = 'hello' \ # comment
   * Conflict with decorators?
 * None coalescing: `?.`, `?[`, `?=` or `??=`, `?` or `??` operator
   (see [PEP 0505](https://www.python.org/dev/peps/pep-0505/))
+* `return = value` changes return value for later `return` or
+  implicit `return` at end of `def` (and arrow functions?)
 * (?) Implicit function calls without parentheses
   (this would mean `foo (arg, arg)` is different from `foo(arg, arg)`)
 * (?) Custom infix operators
